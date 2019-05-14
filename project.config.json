@@ -1,14 +1,17 @@
 {
-  "miniprogramRoot": "client/dist/",
-  "cloudfunctionRoot": "cloud/functions/",
-  "projectname": "neau-books",
-  "description": "东农二手图书平台",
-  "appid": "touristappid",
-  "setting": {
-    "urlCheck": true,
-    "es6": false,
-    "postcss": false,
-    "minified": false
-  },
-  "compileType": "miniprogram"
+	"miniprogramRoot": "client/dist/",
+	"cloudfunctionRoot": "cloud/functions/",
+	"projectname": "neau-books",
+	"description": "东农二手图书平台",
+	"appid": "wx310da947bb4e91d0",
+	"setting": {
+		"urlCheck": true,
+		"es6": false,
+		"postcss": false,
+		"minified": false
+	},
+	"compileType": "miniprogram",
+	"simulatorType": "wechat",
+	"simulatorPluginLibVersion": {},
+	"condition": {}
 }

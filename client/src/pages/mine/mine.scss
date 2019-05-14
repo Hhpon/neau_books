@@ -1,0 +1,23 @@
+@import '@common/scss/variable.scss';
+
+.mine {
+  .mine-mes {
+    height: 300px;
+    background-color: $color-theme;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: $color-normal-text;
+    .avator {
+      width: 140px;
+      height: 140px;
+      border-radius: 50%;
+      overflow: hidden;
+      border: 8px solid rgba(255, 255, 255, 0.5);
+    }
+    .nickname{
+      padding: 20px;
+    }
+  }
+}

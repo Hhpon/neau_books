@@ -1,3 +1,5 @@
+import path from 'path'
+
 const config = {
   projectName: 'neau-books',
   date: '2019-5-12',
@@ -9,6 +11,10 @@ const config = {
   },
   sourceRoot: 'src',
   outputRoot: 'dist',
+  alias: {
+    '@components': path.resolve(__dirname, '..', 'src/components'),
+    '@common': path.resolve(__dirname, '..', 'src/common')
+  },
   plugins: {
     babel: {
       sourceMap: true,
@@ -22,6 +28,14 @@ const config = {
         'transform-class-properties',
         'transform-object-rest-spread'
       ]
+    },
+    sass: {
+      importer: function(url) {
+        const reg = /^@common\/(.*)/
+        return {
+          file: reg.test(url) ? path.resolve(__dirname, '..', 'src/common', url.match(reg)[1]) : url
+        }
+      }
     }
   },
   defineConstants: {
