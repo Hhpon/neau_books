@@ -4,14 +4,15 @@ import '@common/scss/variable.scss'
 import Index from './pages/index'
 
 import './app.scss'
+import './icon.scss'
 
 class App extends Component {
 
   config = {
     pages: [
+      'pages/sell/sell',
       'pages/mine/mine',
-      'pages/index/index',
-      'pages/sell/sell'
+      'pages/index/index'
     ],
     window: {
       backgroundTextStyle: 'light',

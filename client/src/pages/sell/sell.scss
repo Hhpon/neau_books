@@ -1,0 +1,31 @@
+@import '@common/scss/variable.scss';
+
+.sell{
+  .scan-code{
+    width: 100%;
+    position: fixed;
+    bottom: 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    .main-btn{
+      height: 80px;
+      width: 300px;
+      border-radius: 50px;
+      background-color: $color-theme;
+      color: $color-normal-text;
+      font-size: 28px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      view{
+        padding-left: 10px;
+      }
+    }
+    .secondary-btn{
+      font-size: 24px;
+      color: $color-light-text;
+      margin-top: 20px;
+    }
+  }
+}
