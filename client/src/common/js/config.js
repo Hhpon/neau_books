@@ -1,0 +1,1 @@
+export const OPENID_STORAGE = 'openid'

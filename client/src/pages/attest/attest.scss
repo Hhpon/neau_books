@@ -1,0 +1,27 @@
+@import '@common/scss/variable.scss';
+
+page {
+  background-color: $color-page-bgc;
+
+  .attest {
+    background-color: $color-white-bgc;
+    margin: 20px;
+    padding: 0 10px 20px;
+
+    .attest-title {
+      padding: 40px;
+      font-weight: bold;
+      font-size: 50px;
+      text-align: center;
+    }
+
+    .empty {
+      height: 60px;
+    }
+
+    .attest-remark {
+      font-size: $fontsize-small;
+      margin-left: 20px;
+    }
+  }
+}

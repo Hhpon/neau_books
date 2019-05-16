@@ -1,10 +1,10 @@
 import Taro, { Component } from '@tarojs/taro'
 import { View, Button } from '@tarojs/components'
 import { AtModal, AtModalAction, AtSearchBar } from "taro-ui"
+import {OPENID_STORAGE} from '@common/js/config'
 
 import './index.scss'
 
-const OPENID_STORAGE = 'openid'
 const db = Taro.cloud.database()
 
 // import Login from '../../components/login/index'
