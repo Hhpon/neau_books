@@ -11,8 +11,8 @@ class App extends Component {
   config = {
     pages: [
       'pages/sell/sell',
+      'pages/index/index',
       'pages/mine/mine',
-      'pages/index/index'
     ],
     window: {
       backgroundTextStyle: 'light',

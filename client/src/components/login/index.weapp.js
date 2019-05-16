@@ -2,8 +2,11 @@ import Taro, { Component } from "@tarojs/taro"
 import { View, Text, Button } from "@tarojs/components"
 
 export default class Login extends Component {
-  state = {
-    context: {}
+  constructor(props){
+    super(props)
+    this.state={
+
+    }
   }
 
   componentWillMount() {}

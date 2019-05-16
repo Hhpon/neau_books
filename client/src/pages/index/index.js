@@ -25,6 +25,7 @@ export default class Index extends Component {
 
   componentWillMount() {
     this.isAuthorize()
+    console.log('刷新了页面');
   }
 
   componentDidMount() { }
@@ -47,15 +48,21 @@ export default class Index extends Component {
 
   getuserInfo(e) {
     this.getOpenId()
+    let that = this
     let userInfo = e.detail.userInfo
-    db.collection('test').add({
+    db.collection('userInfo').add({
       // data 字段表示需新增的 JSON 数据
       data: userInfo
     })
-      .then(res => {
-        console.log(res)
+      .then(() => {
+        Taro.showTabBar({ animation: true })
+        that.setState({
+          isOpened: false
+        })
       })
-      .catch(console.error)
+      .catch(() => {
+        console.log('catch');
+      })
   }
 
   isAuthorize() {
@@ -67,6 +74,7 @@ export default class Index extends Component {
         if (scopeUserInfo && openId) {
           return;
         }
+        Taro.hideTabBar({ animation: true })
         that.setState({
           isOpened: true
         })
@@ -83,9 +91,6 @@ export default class Index extends Component {
     return (
       <View className='index'>
         <AtModal isOpened={isOpened} closeOnClickOverlay={this.state.closeOnClickOverlay}>
-          {/* <AtModalHeader>提示</AtModalHeader> */}
-          {/* <AtModalContent>
-          </AtModalContent> */}
           <View className='model-content'>欢迎你来到东农二手书买卖平台</View>
           <AtModalAction><Button open-type='getUserInfo' ongetuserinfo={this.getuserInfo}>确定</Button></AtModalAction>
         </AtModal>

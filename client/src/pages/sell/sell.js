@@ -1,7 +1,9 @@
 import Taro, { Component } from '@tarojs/taro'
 import { View } from '@tarojs/components'
 import { AtIcon, AtToast } from 'taro-ui'
+import SeModal from '@components/modal/index'
 import './sell.scss'
+
 
 export default class Sell extends Component {
   // 生命周期放在相对上方，方法放在下方
@@ -17,7 +19,10 @@ export default class Sell extends Component {
       toastText: '',
       toastStatus: '',
       toastDuration: 3000,
-      booksInfo: []
+      booksInfo: [],
+      modalBtnContent: '确定',
+      isModalOpened: false,
+      modalContent: '该书已经发布过了'
     }
   }
 
@@ -28,7 +33,6 @@ export default class Sell extends Component {
     }
     let that = this;
     Taro.scanCode(params).then(res => {
-      console.log(res);
       that.setState({
         toastStatus: 'loading',
         toastText: '加载中',
@@ -42,7 +46,7 @@ export default class Sell extends Component {
         }
       }).then(result => {
         result = result.result
-        console.log(result);
+        console.log(result.data);
         if (result.ret_code === -1) {
           that.setState({
             toastStatus: 'error',
@@ -50,13 +54,33 @@ export default class Sell extends Component {
             toastDuration: 3000,
             isErrorOpened: true
           })
-        }else if(result.ret_code === 0){
+        } else if (result.ret_code === 0) {
           let booksInfo = this.state.booksInfo
-          if(booksInfo)
-          that.setState({
-            isErrorOpened: false
+          let isbn = result.data.isbn
+          let title = result.data.title
+          let isbnIndex = booksInfo.findIndex((element) => {
+            return element.isbn === isbn;
           })
-        }else{
+          // 该判断主要应用于手动输入图书信息
+          let bookTitleIndex = booksInfo.findIndex((element) => {
+            return element.title = title
+          })
+          // 该判断的一部分也一样主要应用于手动输入图书信息
+          if (isbnIndex !== -1 || bookTitleIndex !== -1) {
+            that.setState({
+              toastStatus: 'error',
+              toastText: '已经发布过了',
+              toastDuration: 3000,
+              isErrorOpened: true
+            })
+            return
+          }
+          booksInfo.push(result.data)
+          that.setState({
+            isErrorOpened: false,
+            booksInfo: booksInfo
+          })
+        } else {
           that.setState({
             toastStatus: 'error',
             toastText: '网络出现问题，请稍后再试',
@@ -70,6 +94,13 @@ export default class Sell extends Component {
 
   enterInfo() {
     console.log('手动输入');
+  }
+
+  modalHandle() {
+    console.log('您正在点击modal按钮');
+    this.setState({
+      isModalOpened: false
+    })
   }
 
   render() {
@@ -87,6 +118,9 @@ export default class Sell extends Component {
         </View>
         <View className='toast'>
           <AtToast duration={this.state.toastDuration} isOpened={this.state.isErrorOpened} status={this.state.toastStatus} text={this.state.toastText} icon={this.state.toastIcon}></AtToast>
+        </View>
+        <View className='modal'>
+          <SeModal content={this.state.modalContent} btnContent={this.state.modalBtnContent} isOpened={this.state.isModalOpened} onModalHandle={this.modalHandle}></SeModal>
         </View>
       </View>
     )
