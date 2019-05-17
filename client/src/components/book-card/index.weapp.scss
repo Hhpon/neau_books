@@ -1,0 +1,40 @@
+@import '@common/scss/variable.scss';
+
+.index {
+  display: flex;
+  padding: 30px 0;
+  position: relative;
+
+  .card-img {
+    margin-right: 30px;
+
+    image {
+      height: 200px;
+      width: 150px;
+    }
+  }
+
+  .card-info {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-around;
+    flex: 1;
+    overflow: hidden;
+    .info-top {
+
+      .info-title {
+        font-size: $fontsize-normal;
+      }
+
+      .info-author {
+        font-size: $fontsize-small;
+        color: $color-light-text;
+      }
+    }
+  }
+  .close-fixed{
+    position: absolute;
+    right: 20px;
+    top: 20px;
+  }
+}

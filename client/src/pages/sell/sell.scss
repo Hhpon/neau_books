@@ -1,14 +1,35 @@
 @import '@common/scss/variable.scss';
 
-.sell{
-  .scan-code{
+.sell {
+  margin: 0 30px;
+
+  .book-card {
+    .info-des {
+      display: flex;
+      align-items: center;
+      font-size: $fontsize-normal;
+
+      text:nth-last-child(2){
+        margin-left: 20px;
+      }
+
+      .des {
+        width: 100px;
+        border-bottom: 1px solid black;
+        text-align: center;
+      }
+    }
+  }
+
+  .scan-code {
     width: 100%;
     position: fixed;
     bottom: 20px;
     display: flex;
     flex-direction: column;
     align-items: center;
-    .main-btn{
+
+    .main-btn {
       height: 80px;
       width: 300px;
       border-radius: 50px;
@@ -18,11 +39,13 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      view{
+
+      view {
         padding-left: 10px;
       }
     }
-    .secondary-btn{
+
+    .secondary-btn {
       font-size: 24px;
       color: $color-light-text;
       margin-top: 20px;

@@ -1,5 +1,5 @@
 import Taro, { Component } from '@tarojs/taro'
-import { View } from '@tarojs/components'
+import { View, Text, Input } from '@tarojs/components'
 import { AtIcon, AtToast } from 'taro-ui'
 import SeModal from '@components/modal/index'
 import BookCard from '@components/book-card/index'
@@ -22,12 +22,15 @@ export default class Sell extends Component {
       toastText: '',
       toastStatus: '',
       toastDuration: 3000,
-      booksInfo: [],
+      booksInfo: [{ author: "Nicholas C.Zakas（著）曹力（译）", binding: "平装", edition: "3", format: "16开", gist: "　　作为JavaScript技术经典名著，《JavaScript高级程序设计（第3版）》承继了之前版本全面深入、贴近实战的特点，在详细讲解了JavaScript语言的核心之后，条分缕析地为读者展示了现有规范及实现为开发Web应用提供的各种支持和特性。", img: "http://app2.showapi.com/isbn/img/6876ed71be3145fba2de078f987b1422.jpg", isbn: "9787115275790", page: "730", paper: "胶版纸", price: "99.00", produce: "", pubdate: "2012-03", publisher: "人民邮电出版社", title: "JavaScript高级程序设计（第3版）" }],
       modalBtnContent: '确定',
       isModalOpened: false,
-      modalContent: '完成学生认证才可继续发布书籍'
+      modalContent: '完成学生认证才可继续发布书籍',
+      percentColor: 'color:black'
     }
   }
+
+  componentWillMount() { }
 
   isAttest() {
     let that = this
@@ -146,11 +149,41 @@ export default class Sell extends Component {
     })
   }
 
+  percentChange(value) {
+    console.log(value.detail.value);
+    if (value.detail.value > 10 || value.detail.value < 0) {
+      this.setState({
+        percentColor: 'color:red',
+        toastStatus: 'error',
+        toastText: '请输入有效的数字',
+        toastDuration: 1500,
+        isErrorOpened: true
+      })
+    }
+    this.setState({
+      percentColor: 
+    })
+  }
+
+  nowPriceChange(value) {
+    // this.setState({
+    //   nowPrice: value
+    // })
+    console.log(value);
+  }
+
   render() {
     return (
       <View className='sell'>
-        <View>
-          <BookCard bookInfo={this.state.booksInfo[0]}></BookCard>
+        <View className='book-card'>
+          <BookCard bookInfo={this.state.booksInfo[0]}>
+            <View className='info-des'>
+              <Text>价格：</Text>
+              <Input onBlur={this.nowPriceChange.bind(this)} className='des' type='number' placeholder='价格'></Input>
+              <Text style={this.state.percentColor}>新旧程度：</Text>
+              <Input onBlur={this.percentChange} maxlength={2} className='des' type='number' placeholder='几成新'></Input>
+            </View>
+          </BookCard>
         </View>
         <View className='scan-code'>
           <View className='main-btn' onClick={this.scanCode}>

@@ -25,7 +25,6 @@ export default class Index extends Component {
 
   componentWillMount() {
     this.isAuthorize()
-    console.log('刷新了页面');
   }
 
   componentDidMount() { }

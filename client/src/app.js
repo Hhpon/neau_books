@@ -12,8 +12,8 @@ class App extends Component {
   config = {
     pages: [
       'pages/sell/sell',
-      'pages/attest/attest',
       'pages/index/index',
+      'pages/attest/attest',
       'pages/mine/mine',
     ],
     window: {
