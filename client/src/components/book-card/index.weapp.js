@@ -1,5 +1,5 @@
 import Taro, { Component } from "@tarojs/taro"
-import { View, Image, Input, Text } from "@tarojs/components"
+import { View, Image } from "@tarojs/components"
 import { AtIcon } from 'taro-ui'
 
 import './index.weapp.scss'
@@ -7,10 +7,7 @@ import './index.weapp.scss'
 export default class BookCard extends Component {
   constructor(props) {
     super(props)
-    this.state = {
-      percent: 1,
-      nowPrice: 5
-    }
+    this.state = {}
   }
 
   componentWillMount() { }
@@ -24,7 +21,7 @@ export default class BookCard extends Component {
   componentDidHide() { }
 
   closeBtnClick() {
-    console.log('正在点击取消按钮');
+    this.props.onClose()
   }
 
   render() {

@@ -1,6 +1,6 @@
 import Taro, { Component } from '@tarojs/taro'
-import { View, Text, Input } from '@tarojs/components'
-import { AtIcon, AtToast } from 'taro-ui'
+import { View, Text, Input, ScrollView } from '@tarojs/components'
+import { AtIcon, AtToast, AtModal, AtRadio } from 'taro-ui'
 import SeModal from '@components/modal/index'
 import BookCard from '@components/book-card/index'
 import { OPENID_STORAGE } from '@common/js/config'
@@ -17,6 +17,7 @@ export default class Sell extends Component {
   constructor() {
     super()
     this.state = {
+      currentIndex: 0,
       isErrorOpened: false,
       toastIcon: '',
       toastText: '',
@@ -26,7 +27,8 @@ export default class Sell extends Component {
       modalBtnContent: '确定',
       isModalOpened: false,
       modalContent: '完成学生认证才可继续发布书籍',
-      percentColor: 'color:black'
+      percentStatus: '',
+      isPercentOpened: false
     }
   }
 
@@ -71,7 +73,11 @@ export default class Sell extends Component {
     if (ret_code !== 1) {
       return;
     }
-    console.log('await')
+    let over_code = this._isBooksInfoOver()
+    console.log(over_code)
+    if (!over_code) {
+      return
+    }
     let params = {
       scanType: 'barCode'
     }
@@ -136,6 +142,23 @@ export default class Sell extends Component {
     })
   }
 
+  _isBooksInfoOver() {
+    let booksInfo = this.state.booksInfo
+    if (!booksInfo.length) {
+      return
+    }
+    let booksIt = booksInfo[booksInfo.length - 1]
+    if (!booksIt.nowPrice || !booksIt.percentStatus) {
+      this.setState({
+        toastStatus: 'error',
+        toastText: '请完善书籍信息',
+        toastDuration: 1500,
+        isErrorOpened: true
+      })
+      return 0
+    }
+  }
+
   enterInfo() {
     console.log('手动输入');
     this.isAttest()
@@ -149,42 +172,61 @@ export default class Sell extends Component {
     })
   }
 
-  percentChange(value) {
-    console.log(value.detail.value);
-    if (value.detail.value > 10 || value.detail.value < 0) {
-      this.setState({
-        percentColor: 'color:red',
-        toastStatus: 'error',
-        toastText: '请输入有效的数字',
-        toastDuration: 1500,
-        isErrorOpened: true
-      })
-    }
+  nowPriceChange(index, e) {
+    let booksInfo = this.state.booksInfo
+    booksInfo[index].nowPrice = e.detail.value
     this.setState({
-      percentColor: 
+      booksInfo: booksInfo
     })
   }
 
-  nowPriceChange(value) {
-    // this.setState({
-    //   nowPrice: value
-    // })
-    console.log(value);
+  selectedPercent(index) {
+    console.log(index);
+    this.setState({
+      currentIndex: index,
+      isPercentOpened: true
+    })
+  }
+
+  percentStatusChange(e) {
+    let currentIndex = this.state.currentIndex
+    let booksInfo = this.state.booksInfo
+    booksInfo[currentIndex].percentStatus = e.label
+    this.setState({
+      percentStatus: e.value,
+      booksInfo: booksInfo,
+      isPercentOpened: false
+    })
+  }
+
+  closeBtnClick(index) {
+    console.log(`正在点击第${index}个子组件close`);
+    let booksInfo = this.state.booksInfo
+    booksInfo.splice(index, 1)
+    this.setState({
+      booksInfo: booksInfo
+    })
   }
 
   render() {
+    let booksInfo = this.state.booksInfo;
+    const BooksList = booksInfo.map((bookItem, index) => {
+      return (
+        <BookCard onClose={this.closeBtnClick.bind(this, index)} key={bookItem.isbn} taroKey={index} bookInfo={bookItem}>
+          <View className='info-des'>
+            <Text>价格：</Text>
+            <Input onBlur={this.nowPriceChange.bind(this, index)} className='des' type='number' placeholder='价格'></Input>
+            <Text>品相：</Text>
+            <Input onClick={this.selectedPercent.bind(this, index)} value={bookItem.percentStatus} disabled focus={bookItem.focus} className='des' placeholder='请选择'></Input>
+          </View>
+        </BookCard>
+      )
+    })
     return (
       <View className='sell'>
-        <View className='book-card'>
-          <BookCard bookInfo={this.state.booksInfo[0]}>
-            <View className='info-des'>
-              <Text>价格：</Text>
-              <Input onBlur={this.nowPriceChange.bind(this)} className='des' type='number' placeholder='价格'></Input>
-              <Text style={this.state.percentColor}>新旧程度：</Text>
-              <Input onBlur={this.percentChange} maxlength={2} className='des' type='number' placeholder='几成新'></Input>
-            </View>
-          </BookCard>
-        </View>
+        <ScrollView scrollY enableBackToTop className='book-card'>
+          {BooksList}
+        </ScrollView>
         <View className='scan-code'>
           <View className='main-btn' onClick={this.scanCode}>
             <AtIcon prefixClass='iconfont' value='saoma' size='18'></AtIcon>
@@ -199,6 +241,19 @@ export default class Sell extends Component {
         </View>
         <View className='modal'>
           <SeModal content={this.state.modalContent} btnContent={this.state.modalBtnContent} isOpened={this.state.isModalOpened} onModalHandle={this.modalHandle}></SeModal>
+        </View>
+        <View className='precent-modal'>
+          <AtModal isOpened={this.state.isPercentOpened}>
+            <AtRadio
+              options={[
+                { label: '全新', value: 'new' },
+                { label: '品相良好', value: 'good' },
+                { label: '品相一般', value: 'general' }
+              ]}
+              value={this.state.percentStatus}
+              onClick={this.percentStatusChange.bind(this)}
+            />
+          </AtModal>
         </View>
       </View>
     )

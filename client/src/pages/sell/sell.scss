@@ -1,9 +1,11 @@
 @import '@common/scss/variable.scss';
 
 .sell {
-  margin: 0 30px;
-
+  
   .book-card {
+    position: fixed;
+    top: 0;
+    bottom: 140px;
     .info-des {
       display: flex;
       align-items: center;
@@ -24,7 +26,7 @@
   .scan-code {
     width: 100%;
     position: fixed;
-    bottom: 20px;
+    bottom: 0px;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -48,7 +50,7 @@
     .secondary-btn {
       font-size: 24px;
       color: $color-light-text;
-      margin-top: 20px;
+      line-height: 50px;
     }
   }
 }
