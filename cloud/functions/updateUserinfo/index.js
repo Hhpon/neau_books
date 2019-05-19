@@ -18,5 +18,6 @@ exports.main = async (event, context) => {
       })
   } catch (e) {
     console.error(e)
+    return e
   }
 }

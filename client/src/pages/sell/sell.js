@@ -1,6 +1,6 @@
 import Taro, { Component } from '@tarojs/taro'
 import { View, Text, Input, ScrollView } from '@tarojs/components'
-import { AtIcon, AtToast, AtModal, AtRadio } from 'taro-ui'
+import { AtIcon, AtToast, AtModal, AtRadio, AtMessage } from 'taro-ui'
 import SeModal from '@components/modal/index'
 import BookCard from '@components/book-card/index'
 import { OPENID_STORAGE } from '@common/js/config'
@@ -28,13 +28,19 @@ export default class Sell extends Component {
       isModalOpened: false,
       modalContent: '完成学生认证才可继续发布书籍',
       percentStatus: '',
-      isPercentOpened: false
+      isPercentOpened: false,
+      percentOptions: [
+        { label: '全新', value: 'new' },
+        { label: '品相良好', value: 'good' },
+        { label: '品相一般', value: 'general' }
+      ]
     }
   }
 
   componentWillMount() { }
 
-  isAttest() {
+  // 检测是否完成学生认证
+  _isAttest() {
     let that = this
     return new Promise((resolve, reject) => {
       let openId = Taro.getStorageSync(OPENID_STORAGE)
@@ -66,16 +72,17 @@ export default class Sell extends Component {
     })
   }
 
-  async scanCode() {
+  // 扫描书籍条形码，并在扫描之前查看是否完成学生认证且是否把刚刚上传的书籍信息完善
+  async scanCode(e) {
+    e.stopPropagation()
     console.log('调用扫码');
-    let ret_code = await this.isAttest()
-    console.log(ret_code);
+    let ret_code = await this._isAttest()
     if (ret_code !== 1) {
       return;
     }
     let over_code = this._isBooksInfoOver()
     console.log(over_code)
-    if (!over_code) {
+    if (over_code) {
       return
     }
     let params = {
@@ -96,31 +103,25 @@ export default class Sell extends Component {
         }
       }).then(result => {
         result = result.result
-        console.log(result.data);
+        console.log(result);
         if (result.ret_code === -1) {
           that.setState({
             toastStatus: 'error',
             toastText: '无效的二维码',
-            toastDuration: 3000,
+            toastDuration: 2000,
             isErrorOpened: true
           })
         } else if (result.ret_code === 0) {
           let booksInfo = this.state.booksInfo
           let isbn = result.data.isbn
-          let title = result.data.title
           let isbnIndex = booksInfo.findIndex((element) => {
             return element.isbn === isbn;
           })
-          // 该判断主要应用于手动输入图书信息
-          let bookTitleIndex = booksInfo.findIndex((element) => {
-            return element.title = title
-          })
-          // 该判断的一部分也一样主要应用于手动输入图书信息
-          if (isbnIndex !== -1 || bookTitleIndex !== -1) {
+          if (isbnIndex !== -1) {
             that.setState({
               toastStatus: 'error',
               toastText: '已经发布过了',
-              toastDuration: 3000,
+              toastDuration: 2000,
               isErrorOpened: true
             })
             return
@@ -134,7 +135,7 @@ export default class Sell extends Component {
           that.setState({
             toastStatus: 'error',
             toastText: '网络出现问题，请稍后再试',
-            toastDuration: 3000,
+            toastDuration: 2000,
             isErrorOpened: true
           })
         }
@@ -142,28 +143,31 @@ export default class Sell extends Component {
     })
   }
 
+  // 检测上次发布的书籍是否已经被完善
   _isBooksInfoOver() {
+    console.log('触发boosOver方法');
     let booksInfo = this.state.booksInfo
     if (!booksInfo.length) {
-      return
+      return 0
     }
     let booksIt = booksInfo[booksInfo.length - 1]
     if (!booksIt.nowPrice || !booksIt.percentStatus) {
-      this.setState({
-        toastStatus: 'error',
-        toastText: '请完善书籍信息',
-        toastDuration: 1500,
-        isErrorOpened: true
+      Taro.atMessage({
+        'message': '请完善书籍信息',
+        'type': 'error',
       })
-      return 0
+      return 1
     }
+    return 0
   }
 
+  // 手动输入图书信息 - 跳转页面，在另一个页面输入
   enterInfo() {
     console.log('手动输入');
     this.isAttest()
   }
 
+  // 当未完成学生认证的时候会跳转页面完成学生认证
   modalHandle() {
     console.log('您正在点击modal确定按钮');
     Taro.navigateTo({ url: '/pages/attest/attest' })
@@ -172,6 +176,7 @@ export default class Sell extends Component {
     })
   }
 
+  // 改变当前index 的价格
   nowPriceChange(index, e) {
     let booksInfo = this.state.booksInfo
     booksInfo[index].nowPrice = e.detail.value
@@ -180,31 +185,42 @@ export default class Sell extends Component {
     })
   }
 
-  selectedPercent(index) {
-    console.log(index);
+  // 设置了currentIndex标志位，来改变品相
+  selectedPercent(index, e) {
+    console.log('调用方法让modal显示');
+    e.stopPropagation()
     this.setState({
       currentIndex: index,
       isPercentOpened: true
     })
   }
 
-  percentStatusChange(e) {
+  // 改变currentindex标志的品相
+  percentStatusChange(value, e) {
     let currentIndex = this.state.currentIndex
     let booksInfo = this.state.booksInfo
     booksInfo[currentIndex].percentStatus = e.label
     this.setState({
-      percentStatus: e.value,
+      percentStatus: value,
       booksInfo: booksInfo,
       isPercentOpened: false
     })
   }
 
+  // 点击close的时候删除数组中的某个书籍
   closeBtnClick(index) {
     console.log(`正在点击第${index}个子组件close`);
     let booksInfo = this.state.booksInfo
     booksInfo.splice(index, 1)
     this.setState({
       booksInfo: booksInfo
+    })
+  }
+
+  // toast 当到达时间的时候toast会消失，但是isopened的值不会改变，所以要调用onclose的方法改变isopend的值
+  closeToast() {
+    this.setState({
+      isErrorOpened: false
     })
   }
 
@@ -217,7 +233,9 @@ export default class Sell extends Component {
             <Text>价格：</Text>
             <Input onBlur={this.nowPriceChange.bind(this, index)} className='des' type='number' placeholder='价格'></Input>
             <Text>品相：</Text>
-            <Input onClick={this.selectedPercent.bind(this, index)} value={bookItem.percentStatus} disabled focus={bookItem.focus} className='des' placeholder='请选择'></Input>
+            <View onClick={this.selectedPercent.bind(this, index)}>
+              <Input value={bookItem.percentStatus} disabled className='des' placeholder='请选择'></Input>
+            </View>
           </View>
         </BookCard>
       )
@@ -237,7 +255,7 @@ export default class Sell extends Component {
         </View>
         </View>
         <View className='toast'>
-          <AtToast duration={this.state.toastDuration} isOpened={this.state.isErrorOpened} status={this.state.toastStatus} text={this.state.toastText} icon={this.state.toastIcon}></AtToast>
+          <AtToast onClose={this.closeToast} duration={this.state.toastDuration} isOpened={this.state.isErrorOpened} status={this.state.toastStatus} text={this.state.toastText} icon={this.state.toastIcon}></AtToast>
         </View>
         <View className='modal'>
           <SeModal content={this.state.modalContent} btnContent={this.state.modalBtnContent} isOpened={this.state.isModalOpened} onModalHandle={this.modalHandle}></SeModal>
@@ -245,16 +263,13 @@ export default class Sell extends Component {
         <View className='precent-modal'>
           <AtModal isOpened={this.state.isPercentOpened}>
             <AtRadio
-              options={[
-                { label: '全新', value: 'new' },
-                { label: '品相良好', value: 'good' },
-                { label: '品相一般', value: 'general' }
-              ]}
+              options={this.state.percentOptions}
               value={this.state.percentStatus}
               onClick={this.percentStatusChange.bind(this)}
             />
           </AtModal>
         </View>
+        <AtMessage />
       </View>
     )
   }
