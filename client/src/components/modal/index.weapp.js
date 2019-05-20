@@ -12,6 +12,12 @@ export default class Login extends Component {
     }
   }
 
+  static defaultProps = {
+    cancelIsOpen: false,
+    btnCancelContent: '取消',
+    btnConfirmContent: '确定'
+  };
+
   componentWillMount() { }
 
   componentDidMount() { }
@@ -31,9 +37,14 @@ export default class Login extends Component {
       <View className='index'>
         <AtModal isOpened={this.props.isOpened} closeOnClickOverlay={this.state.closeOnClickOverlay}>
           <View className='model-content'>{this.props.content}</View>
-          <AtModalAction><Button onClick={this.modalHandle}>{this.props.btnContent}</Button></AtModalAction>
+          <AtModalAction>{this.props.cancelIsOpen && <Button>{this.props.btnCancelContent}</Button>}<Button onClick={this.modalHandle}>{this.props.btnConfirmContent}</Button></AtModalAction>
         </AtModal>
       </View>
     )
   }
 }
+
+// CustomButton.defaultProps = {
+//   cancelIsOpen: false,
+//   btnCancelContent: '取消'
+// }

@@ -1,4 +1,5 @@
 // 云函数入口文件
+// 该云函数是当同学们学生认证的时候更新学生信息使用的
 const cloud = require('wx-server-sdk')
 
 cloud.init()

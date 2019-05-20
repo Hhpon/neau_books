@@ -1,6 +1,6 @@
 import Taro, { Component } from '@tarojs/taro'
 import { View, Text, Input, ScrollView } from '@tarojs/components'
-import { AtIcon, AtToast, AtModal, AtRadio, AtMessage } from 'taro-ui'
+import { AtIcon, AtToast, AtModal, AtRadio, AtMessage, AtButton } from 'taro-ui'
 import SeModal from '@components/modal/index'
 import BookCard from '@components/book-card/index'
 import { OPENID_STORAGE } from '@common/js/config'
@@ -23,8 +23,7 @@ export default class Sell extends Component {
       toastText: '',
       toastStatus: '',
       toastDuration: 3000,
-      booksInfo: [{ author: "Nicholas C.Zakas（著）曹力（译）", binding: "平装", edition: "3", format: "16开", gist: "　　作为JavaScript技术经典名著，《JavaScript高级程序设计（第3版）》承继了之前版本全面深入、贴近实战的特点，在详细讲解了JavaScript语言的核心之后，条分缕析地为读者展示了现有规范及实现为开发Web应用提供的各种支持和特性。", img: "http://app2.showapi.com/isbn/img/6876ed71be3145fba2de078f987b1422.jpg", isbn: "9787115275790", page: "730", paper: "胶版纸", price: "99.00", produce: "", pubdate: "2012-03", publisher: "人民邮电出版社", title: "JavaScript高级程序设计（第3版）" }],
-      modalBtnContent: '确定',
+      booksInfo: [],
       isModalOpened: false,
       modalContent: '完成学生认证才可继续发布书籍',
       percentStatus: '',
@@ -179,7 +178,7 @@ export default class Sell extends Component {
   // 改变当前index 的价格
   nowPriceChange(index, e) {
     let booksInfo = this.state.booksInfo
-    booksInfo[index].nowPrice = e.detail.value
+    booksInfo[index].nowPrice = +e.detail.value
     this.setState({
       booksInfo: booksInfo
     })
@@ -224,8 +223,49 @@ export default class Sell extends Component {
     })
   }
 
+  // 点击发布按钮之后的操作，首先要检验书籍信息是否完整，然后把书籍信息数组传输到云函数，云函数进行接下来的处理
+  putOutHandle() {
+    let over_code = this._isBooksInfoOver()
+    console.log(over_code)
+    if (over_code) {
+      return
+    }
+    let that = this
+    Taro.cloud.callFunction({
+      name: 'putOut',
+      data: {
+        booksInfo: this.state.booksInfo
+      }
+    }).then(res => {
+      console.log(res);
+      if (!res.result.code) {
+        Taro.atMessage({
+          'message': '发布失败，请稍后重试',
+          'type': 'error',
+        })
+        return
+      }
+      Taro.atMessage({
+        'message': '发布成功',
+        'type': 'success',
+      })
+      that.setState({
+        booksInfo: []
+      })
+    })
+  }
+
   render() {
     let booksInfo = this.state.booksInfo;
+    let totalPrice = function () {
+      let sum = 0;
+      booksInfo.forEach((element) => {
+        if (element.nowPrice) {
+          sum += element.nowPrice
+        }
+      })
+      return sum
+    }
     const BooksList = booksInfo.map((bookItem, index) => {
       return (
         <BookCard onClose={this.closeBtnClick.bind(this, index)} key={bookItem.isbn} taroKey={index} bookInfo={bookItem}>
@@ -252,13 +292,19 @@ export default class Sell extends Component {
           </View>
           <View className='secondary-btn' onClick={this.enterInfo}>
             手动输入图书信息
-        </View>
+          </View>
+          {booksInfo.length &&
+            <View className='putOutWrapper'>
+              <View>{booksInfo.length}本 可卖￥{totalPrice()}</View>
+              <Button className='putOutBtn' onClick={this.putOutHandle}>发布</Button>
+            </View>
+          }
         </View>
         <View className='toast'>
           <AtToast onClose={this.closeToast} duration={this.state.toastDuration} isOpened={this.state.isErrorOpened} status={this.state.toastStatus} text={this.state.toastText} icon={this.state.toastIcon}></AtToast>
         </View>
         <View className='modal'>
-          <SeModal content={this.state.modalContent} btnContent={this.state.modalBtnContent} isOpened={this.state.isModalOpened} onModalHandle={this.modalHandle}></SeModal>
+          <SeModal content={this.state.modalContent} isOpened={this.state.isModalOpened} onModalHandle={this.modalHandle}></SeModal>
         </View>
         <View className='precent-modal'>
           <AtModal isOpened={this.state.isPercentOpened}>

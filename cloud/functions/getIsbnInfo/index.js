@@ -1,4 +1,5 @@
 // 云函数入口文件
+// 该云函数是通过isbn获取书籍具体信息
 const cloud = require('wx-server-sdk')
 const getIsbn = require('./getInfoHandle')
 

@@ -11,10 +11,10 @@ class App extends Component {
 
   config = {
     pages: [
+      'pages/mine/mine',
       'pages/sell/sell',
       'pages/index/index',
       'pages/attest/attest',
-      'pages/mine/mine',
     ],
     window: {
       backgroundTextStyle: 'light',
