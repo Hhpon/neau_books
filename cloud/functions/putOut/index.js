@@ -23,33 +23,35 @@ exports.main = async (event, context) => new Promise((resolve, reject) => {
   const openid = cloud.getWXContext().OPENID
   db.collection('userInfo').where({
     _openid: openid
-  }).get().then(res => {
+  }).get().then(async (res) => {
     let userInfo = res.data[0]
-    let booksInfo = event.booksInfo
-    booksInfo.forEach(async (bookItem) => {
-      let bookInfo = {
-        author: bookItem.author,
-        edition: bookItem.edition,
-        img: bookItem.img,
-        isbn: bookItem.isbn,
-        price: bookItem.price,
-        publisher: bookItem.publisher,
-        title: bookItem.title,
-        nowPrice: bookItem.nowPrice,
-        percentStatus: bookItem.percentStatus,
-        _openid: openid,
-        bookStatus: 0,
-        avatarUrl: userInfo.avatarUrl,
-        faculty: userInfo.faculty,
-        studentID: userInfo.studentID,
-        tel: userInfo.tel,
-        userName: userInfo.userName
-      }
-      console.log(bookInfo);
-      await waitAdd(bookInfo)
-    });
+    let bookItem = event.bookItem
+    // booksInfo.forEach(async (bookItem) => {
+
+    //   console.log(bookInfo);
+    // });
+    let bookInfo = {
+      author: bookItem.author,
+      edition: bookItem.edition,
+      img: bookItem.img,
+      isbn: bookItem.isbn,
+      price: bookItem.price,
+      publisher: bookItem.publisher,
+      title: bookItem.title,
+      nowPrice: bookItem.nowPrice,
+      percentStatus: bookItem.percentStatus,
+      _openid: openid,
+      bookStatus: 0,
+      avatarUrl: userInfo.avatarUrl,
+      faculty: userInfo.faculty,
+      studentID: userInfo.studentID,
+      tel: userInfo.tel,
+      userName: userInfo.userName
+    }
+    await waitAdd(bookInfo)
     resolve({ code: 1 })
-  }).catch(() => {
+  }).catch((error) => {
+    console.log(error);
     reject({ code: 0 })
   })
 })

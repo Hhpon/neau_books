@@ -1,7 +1,7 @@
 // 云函数入口文件
 // 该云函数是通过isbn获取书籍具体信息
 const cloud = require('wx-server-sdk')
-const getIsbn = require('./getInfoHandle')
+const getIsbn = require('./getInfo')
 
 cloud.init()
 
@@ -11,5 +11,5 @@ exports.main = async (event, context) => {
   const { isbn } = event
   let bookInfo = await getIsbn(isbn)
   
-  return bookInfo
+  return 
 }

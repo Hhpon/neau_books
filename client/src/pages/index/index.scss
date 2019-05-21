@@ -1,5 +1,50 @@
+@import '@common/scss/variable.scss';
+
+.index {
+  .book-list {
+    .info-des {
+      display: flex;
+      justify-content: space-between;
+
+      .des-left {
+        .info-percent {
+          font-size: $fontsize-normal;
+        }
+
+        .info-price {
+          .price {
+            font-size: $fontsize-small;
+            color: $color-light-text;
+            text-decoration: line-through;
+          }
+
+          .now-price {
+            font-size: $fontsize-normal;
+            color: $color-strong-text;
+            margin-left: 20px;
+          }
+        }
+      }
+
+      .des-right {
+        display: flex;
+        align-items: flex-end;
+
+        view {
+          line-height: 60px;
+          border-radius: 10px;
+          padding: 0 20px;
+          font-size: $fontsize-normal;
+          background-color: $color-theme-corder;
+          color: $color-normal-text;
+        }
+      }
+    }
+  }
+
   .model-content {
     font-size: 28px;
     text-align: center;
     padding: 20px 0;
   }
+}

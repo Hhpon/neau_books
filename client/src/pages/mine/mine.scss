@@ -20,4 +20,38 @@
       padding: 20px;
     }
   }
+  .mine-books{
+    .info-des{
+      display: flex;
+      justify-content: space-between;
+      .des-left{
+        .info-percent{
+          font-size: $fontsize-normal;
+        }
+        .info-price{
+          .price{
+            font-size: $fontsize-small;
+            color: $color-light-text;
+            text-decoration: line-through;
+          }
+          .now-price{
+            font-size: $fontsize-normal;
+            color: $color-strong-text;
+            margin-left: 20px;
+          }
+        }
+      }
+      .des-right{
+        display: flex;
+        align-items: flex-end;
+        view{
+          line-height: 60px;
+          border-radius: 10px;
+          padding: 0 10px;
+          font-size: $fontsize-normal;
+          border: 2px solid $color-theme-corder;
+        }
+      }
+    }
+  }
 }

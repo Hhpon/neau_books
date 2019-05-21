@@ -1,6 +1,6 @@
 import Taro, { Component } from '@tarojs/taro'
-import { View, Text, Input, ScrollView } from '@tarojs/components'
-import { AtIcon, AtToast, AtModal, AtRadio, AtMessage, AtButton } from 'taro-ui'
+import { View, Text, Input, ScrollView, Button } from '@tarojs/components'
+import { AtIcon, AtToast, AtModal, AtRadio, AtMessage } from 'taro-ui'
 import SeModal from '@components/modal/index'
 import BookCard from '@components/book-card/index'
 import { OPENID_STORAGE } from '@common/js/config'
@@ -69,6 +69,24 @@ export default class Sell extends Component {
           reject('网络问题，请联系管理员')
         })
     })
+  }
+
+  // 检测上次发布的书籍是否已经被完善
+  _isBooksInfoOver() {
+    console.log('触发boosOver方法');
+    let booksInfo = this.state.booksInfo
+    if (!booksInfo.length) {
+      return 0
+    }
+    let booksIt = booksInfo[booksInfo.length - 1]
+    if (!booksIt.nowPrice || !booksIt.percentStatus) {
+      Taro.atMessage({
+        'message': '请完善书籍信息',
+        'type': 'error',
+      })
+      return 1
+    }
+    return 0
   }
 
   // 扫描书籍条形码，并在扫描之前查看是否完成学生认证且是否把刚刚上传的书籍信息完善
@@ -142,24 +160,6 @@ export default class Sell extends Component {
     })
   }
 
-  // 检测上次发布的书籍是否已经被完善
-  _isBooksInfoOver() {
-    console.log('触发boosOver方法');
-    let booksInfo = this.state.booksInfo
-    if (!booksInfo.length) {
-      return 0
-    }
-    let booksIt = booksInfo[booksInfo.length - 1]
-    if (!booksIt.nowPrice || !booksIt.percentStatus) {
-      Taro.atMessage({
-        'message': '请完善书籍信息',
-        'type': 'error',
-      })
-      return 1
-    }
-    return 0
-  }
-
   // 手动输入图书信息 - 跳转页面，在另一个页面输入
   enterInfo() {
     console.log('手动输入');
@@ -230,29 +230,57 @@ export default class Sell extends Component {
     if (over_code) {
       return
     }
-    let that = this
-    Taro.cloud.callFunction({
-      name: 'putOut',
-      data: {
-        booksInfo: this.state.booksInfo
-      }
-    }).then(res => {
-      console.log(res);
-      if (!res.result.code) {
-        Taro.atMessage({
-          'message': '发布失败，请稍后重试',
-          'type': 'error',
-        })
-        return
-      }
+    let booksInfo = this.state.booksInfo
+    let index = 0
+    for (let i = 0; i < booksInfo.length; i++) {
+      Taro.cloud.callFunction({
+        name: 'putOut',
+        data: {
+          bookItem: booksInfo[i]
+        }
+      }).then(res => {
+        console.log(res);
+        index += 1
+      }).catch(error => {
+        console.log(error);
+      })
+    }
+    if (index === booksInfo.length) {
       Taro.atMessage({
-        'message': '发布成功',
+        'message': `全部发布成功`,
         'type': 'success',
       })
-      that.setState({
+      this.setState({
         booksInfo: []
       })
-    })
+    } else {
+      Taro.atMessage({
+        'message': `${index}个发布成功`,
+        'type': 'info'
+      })
+    }
+    // Taro.cloud.callFunction({
+    //   name: 'putOut',
+    //   data: {
+    //     booksInfo: this.state.booksInfo
+    //   }
+    // }).then(res => {
+    //   console.log(res);
+    //   if (!res.result.code) {
+    //     Taro.atMessage({
+    //       'message': '发布失败，请稍后重试',
+    //       'type': 'error',
+    //     })
+    //     return
+    //   }
+    //   Taro.atMessage({
+    //     'message': '发布成功',
+    //     'type': 'success',
+    //   })
+    //   that.setState({
+    //     booksInfo: []
+    //   })
+    // })
   }
 
   render() {

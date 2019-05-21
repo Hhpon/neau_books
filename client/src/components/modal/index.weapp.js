@@ -28,8 +28,12 @@ export default class Login extends Component {
 
   componentDidHide() { }
 
-  modalHandle() {
-    this.props.onModalHandle()
+  btnConfirmModalHandle() {
+    this.props.onConfirmModalHandle()
+  }
+
+  btnCancelModalHandle(){
+    this.props.onCancelModalHandle()
   }
 
   render() {
@@ -37,7 +41,7 @@ export default class Login extends Component {
       <View className='index'>
         <AtModal isOpened={this.props.isOpened} closeOnClickOverlay={this.state.closeOnClickOverlay}>
           <View className='model-content'>{this.props.content}</View>
-          <AtModalAction>{this.props.cancelIsOpen && <Button>{this.props.btnCancelContent}</Button>}<Button onClick={this.modalHandle}>{this.props.btnConfirmContent}</Button></AtModalAction>
+          <AtModalAction>{this.props.cancelIsOpen && <Button onClick={this.btnCancelModalHandle}>{this.props.btnCancelContent}</Button>}<Button onClick={this.btnConfirmModalHandle}>{this.props.btnConfirmContent}</Button></AtModalAction>
         </AtModal>
       </View>
     )
