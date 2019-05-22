@@ -26,10 +26,6 @@ exports.main = async (event, context) => new Promise((resolve, reject) => {
   }).get().then(async (res) => {
     let userInfo = res.data[0]
     let bookItem = event.bookItem
-    // booksInfo.forEach(async (bookItem) => {
-
-    //   console.log(bookInfo);
-    // });
     let bookInfo = {
       author: bookItem.author,
       edition: bookItem.edition,

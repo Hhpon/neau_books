@@ -14,7 +14,8 @@ const db = Taro.cloud.database()
 export default class Index extends Component {
 
   config = {
-    navigationBarTitleText: '首页'
+    navigationBarTitleText: '首页',
+    enablePullDownRefresh: true
   }
 
   constructor() {
@@ -22,10 +23,15 @@ export default class Index extends Component {
     this.state = {
       isOpened: false,
       closeOnClickOverlay: false,
-      currentIndex: 0,
+      currentIndex: 0,  // 分页获取时的页码
       booksInfo: [],
       isModalOpened: false,
       modalContent: '完成学生认证才可继续发布书籍',
+      isCloseOpened: false,
+      destineModalContent: '',
+      isDestineModalOpened: false,
+      currentId: '',
+      currentBookIndex: 0
     }
   }
 
@@ -38,9 +44,24 @@ export default class Index extends Component {
 
   componentWillUnmount() { }
 
-  componentDidShow() { }
+  componentDidShow() {
+    Taro.startPullDownRefresh().then(() => {
+      Taro.stopPullDownRefresh()
+    })
+  }
 
   componentDidHide() { }
+
+  onPullDownRefresh() {
+    let that = this
+    this.setState({
+      currentIndex: 0,
+      booksInfo: []
+    }, async () => {
+      await that._getAllBooksInfo()
+      Taro.stopPullDownRefresh()
+    })
+  }
 
   _getOpenId() {
     Taro.cloud
@@ -54,19 +75,22 @@ export default class Index extends Component {
 
   // 分页获取所有书籍
   _getAllBooksInfo() {
-    let currentIndex = this.state.currentIndex
-    let booksInfo = this.state.booksInfo
-    let that = this
-    db.collection('booksInfo').where({
-      bookStatus: 0
-    }).limit(LIMIT_COUNT).skip(LIMIT_COUNT * currentIndex).get().then(res => {
-      console.log(res.data);
-      let newBooksInfo = booksInfo.concat(res.data)
-      that.setState({
-        booksInfo: newBooksInfo
+    return new Promise((resolve) => {
+      let currentIndex = this.state.currentIndex
+      let booksInfo = this.state.booksInfo
+      let that = this
+      db.collection('booksInfo').where({
+        bookStatus: 0
+      }).limit(LIMIT_COUNT).skip(LIMIT_COUNT * currentIndex).get().then(res => {
+        console.log(res.data);
+        let newBooksInfo = booksInfo.concat(res.data)
+        that.setState({
+          booksInfo: newBooksInfo
+        })
+        resolve({ code: ERR_OK })
+      }).catch(err => {
+        console.log(err);
       })
-    }).catch(err => {
-      console.log(err);
     })
   }
 
@@ -149,12 +173,12 @@ export default class Index extends Component {
   }
 
   // 点击预订按钮进行的操作
-  async destineBook(_id, _openid) {
+  async destineBook(_id, _openid, index) {
     let openId = Taro.getStorageSync(OPENID_STORAGE)
     if (openId === _openid) {
       Taro.atMessage({
-        'message': '网络出现问题，请稍后再试',
-        'type': 'error',
+        'message': '不能预订自己的书籍，笨蛋',
+        'type': 'info',
       })
       return
     }
@@ -164,11 +188,11 @@ export default class Index extends Component {
       return
     }
     console.log('可预订');
-    Taro.cloud.callFunction({
-      name: 'destineBook',
-      data: { _id: _id }
-    }).then(res => {
-      console.log(res);
+    this.setState({
+      destineModalContent: '预订后不能退订，确认预订嘛',
+      isDestineModalOpened: true,
+      currentId: _id,
+      currentBookIndex: index
     })
   }
 
@@ -176,11 +200,38 @@ export default class Index extends Component {
     console.log('跳转到搜索页面');
   }
 
+  btnConfirmModalHandle() {
+    let _id = this.state.currentId
+    let that = this
+    let currentBookIndex = this.state.currentBookIndex
+    Taro.cloud.callFunction({
+      name: 'destineBook',
+      data: { _id: _id }
+    }).then(res => {
+      console.log(res);
+      Taro.atMessage({
+        'message': '预订成功',
+        'type': 'success'
+      })
+      let booksInfo = this.state.booksInfo
+      booksInfo.splice(currentBookIndex, 1)
+      that.setState({
+        booksInfo: booksInfo
+      })
+    })
+  }
+
+  btnCancelModalHandle() {
+    this.setState({
+      isDestineModalOpened: false
+    })
+  }
+
   render() {
     let booksInfo = this.state.booksInfo
     const BooksList = booksInfo.map((bookItem, index) => {
       return (
-        <BookCard onClose={this.closeBtnClick.bind(this, index)} key={bookItem._id} taroKey={index} bookInfo={bookItem}>
+        <BookCard onClose={this.closeBtnClick.bind(this, index)} isCloseOpened={this.state.isCloseOpened} key={bookItem._id} taroKey={index} bookInfo={bookItem}>
           <View className='info-des'>
             <View className='des-left'>
               <View className='info-percent'>
@@ -192,7 +243,7 @@ export default class Index extends Component {
               </View>
             </View>
             <View className='des-right'>
-              <View onClick={this.destineBook.bind(this, bookItem._id, bookItem._openid)}>
+              <View onClick={this.destineBook.bind(this, bookItem._id, bookItem._openid, index)}>
                 预订
               </View>
             </View>
@@ -216,7 +267,10 @@ export default class Index extends Component {
           <AtModalAction><Button open-type='getUserInfo' ongetuserinfo={this.getuserInfo}>确定</Button></AtModalAction>
         </AtModal>
         <View className='modal'>
-          <SeModal content={this.state.modalContent} isOpened={this.state.isModalOpened} onModalHandle={this.modalHandle}></SeModal>
+          <SeModal content={this.state.modalContent} isOpened={this.state.isModalOpened} onConfirmModalHandle={this.modalHandle}></SeModal>
+        </View>
+        <View className='modal'>
+          <SeModal cancelIsOpen content={this.state.destineModalContent} isOpened={this.state.isDestineModalOpened} onConfirmModalHandle={this.btnConfirmModalHandle} onCancelModalHandle={this.btnCancelModalHandle}></SeModal>
         </View>
         <AtMessage />
       </View>

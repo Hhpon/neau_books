@@ -14,23 +14,45 @@ export default class Mine extends Component {
   // 生命周期放在相对上方，方法放在下方
 
   config = {
-    navigationBarTitleText: '个人信息'
+    navigationBarTitleText: '个人信息',
+    enablePullDownRefresh: true
   }
   constructor() {
     super()
     this.state = {
       currentPage: 0,
-      currentIndex: 0,
-      currentBook: 0,
+      currentIndex: 0, // 标记当前页数的
+      currentDestineIndex: 0, // 标记我预定的当前页数
+      currentBook: 0,  // 标志删除书籍索引的
       tabList: [{ title: '我发布的' }, { title: '我预订的' }],
-      booksInfo: [],
+      booksInfo: [],  // 发布的所有书籍
       isModalOpened: false,
-      modalContent: ''
+      modalContent: '',
+      destineBooksInfo: [],
+      isCloseOpened: false
     }
   }
 
   componentWillMount() {
     this._getPutBooks()
+    this._getDestineBooks()
+  }
+
+  componentDidShow() {
+    Taro.startPullDownRefresh().then(() => {
+      Taro.stopPullDownRefresh()
+    })
+  }
+
+  onPullDownRefresh() {
+    let that = this
+    this.setState({
+      currentIndex: 0,
+      booksInfo: []
+    }, async () => {
+      await that._getPutBooks()
+      Taro.stopPullDownRefresh()
+    })
   }
 
   // 分页获取我发布的书籍数据
@@ -43,8 +65,6 @@ export default class Mine extends Component {
       db.collection('booksInfo').where({
         _openid: openId
       }).limit(LIMIT_COUNT).skip(LIMIT_COUNT * currentIndex).get().then(res => {
-        console.log(res.data);
-        console.log('调用getput方法');
         let newBooksInfo = booksInfo.concat(res.data)
         that.setState({
           currentIndex: currentIndex + 1,
@@ -52,6 +72,28 @@ export default class Mine extends Component {
         })
         resolve({ code: ERR_OK })
       }).catch(() => {
+        reject({ code: ERR_NO })
+      })
+    })
+  }
+
+  _getDestineBooks() {
+    let openId = Taro.getStorageSync(OPENID_STORAGE)
+    let currentDestineIndex = this.state.currentDestineIndex
+    let destineBooksInfo = this.state.destineBooksInfo
+    let that = this
+    return new Promise((resolve, reject) => {
+      db.collection('booksInfo').where({
+        destineOpenId: openId
+      }).limit(LIMIT_COUNT).skip(LIMIT_COUNT * currentDestineIndex).get().then(res => {
+        let newBooksInfo = destineBooksInfo.concat(res.data)
+        that.setState({
+          currentIndex: currentDestineIndex + 1,
+          destineBooksInfo: newBooksInfo
+        })
+        resolve({ code: ERR_OK })
+      }).catch(error => {
+        console.log(error);
         reject({ code: ERR_NO })
       })
     })
@@ -124,6 +166,29 @@ export default class Mine extends Component {
 
   render() {
     let booksInfo = this.state.booksInfo
+    let destineBooksInfo = this.state.destineBooksInfo
+    const DestineBooksList = destineBooksInfo.map((bookItem, index) => {
+      return (
+        <BookCard onClose={this.closeBtnClick.bind(this, index)} isCloseOpened={this.state.isCloseOpened} key={bookItem._id} taroKey={index} bookInfo={bookItem}>
+          <View className='info-des'>
+            <View className='des-left'>
+              <View className='info-percent'>
+                品相：{bookItem.percentStatus}
+              </View>
+              <View className='info-price'>
+                <Text className='price'>￥{bookItem.price}</Text>
+                <Text className='now-price'>￥{bookItem.nowPrice}</Text>
+              </View>
+            </View>
+            <View className='des-right'>
+              <View>
+                已预订
+              </View>
+            </View>
+          </View>
+        </BookCard>
+      )
+    })
     const BooksList = booksInfo.map((bookItem, index) => {
       return (
         <BookCard onClose={this.closeBtnClick.bind(this, index)} key={bookItem._id} taroKey={index} bookInfo={bookItem}>
@@ -165,7 +230,7 @@ export default class Mine extends Component {
             </AtTabsPane>
             <AtTabsPane current={this.state.currentPage} index={1}>
               <View>
-
+                {DestineBooksList}
               </View>
             </AtTabsPane>
           </AtTabs>

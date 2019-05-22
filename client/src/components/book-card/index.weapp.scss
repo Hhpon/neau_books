@@ -24,6 +24,7 @@
     .info-top {
 
       .info-title {
+        width: 90%;
         font-size: $fontsize-normal;
       }
 
@@ -37,5 +38,10 @@
     position: absolute;
     right: 20px;
     top: 20px;
+    .avatal-img{
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+    }
   }
 }

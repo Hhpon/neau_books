@@ -5,6 +5,7 @@ import SeModal from '@components/modal/index'
 import BookCard from '@components/book-card/index'
 import { OPENID_STORAGE } from '@common/js/config'
 import './sell.scss'
+import { ERR_OK } from '../../common/js/config';
 
 const db = Taro.cloud.database()
 
@@ -87,6 +88,23 @@ export default class Sell extends Component {
       return 1
     }
     return 0
+  }
+
+  _putOut(bookItem) {
+    return new Promise((resolve, reject) => {
+      Taro.cloud.callFunction({
+        name: 'putOut',
+        data: {
+          bookItem: bookItem
+        }
+      }).then(res => {
+        console.log(res);
+        resolve({ code: ERR_OK })
+      }).catch(error => {
+        console.log(error);
+        reject(error)
+      })
+    })
   }
 
   // 扫描书籍条形码，并在扫描之前查看是否完成学生认证且是否把刚刚上传的书籍信息完善
@@ -224,63 +242,22 @@ export default class Sell extends Component {
   }
 
   // 点击发布按钮之后的操作，首先要检验书籍信息是否完整，然后把书籍信息数组传输到云函数，云函数进行接下来的处理
-  putOutHandle() {
+  async putOutHandle() {
     let over_code = this._isBooksInfoOver()
     console.log(over_code)
     if (over_code) {
       return
     }
     let booksInfo = this.state.booksInfo
-    let index = 0
-    for (let i = 0; i < booksInfo.length; i++) {
-      Taro.cloud.callFunction({
-        name: 'putOut',
-        data: {
-          bookItem: booksInfo[i]
-        }
-      }).then(res => {
-        console.log(res);
-        index += 1
-      }).catch(error => {
-        console.log(error);
-      })
-    }
-    if (index === booksInfo.length) {
-      Taro.atMessage({
-        'message': `全部发布成功`,
-        'type': 'success',
-      })
-      this.setState({
-        booksInfo: []
-      })
-    } else {
-      Taro.atMessage({
-        'message': `${index}个发布成功`,
-        'type': 'info'
-      })
-    }
-    // Taro.cloud.callFunction({
-    //   name: 'putOut',
-    //   data: {
-    //     booksInfo: this.state.booksInfo
-    //   }
-    // }).then(res => {
-    //   console.log(res);
-    //   if (!res.result.code) {
-    //     Taro.atMessage({
-    //       'message': '发布失败，请稍后重试',
-    //       'type': 'error',
-    //     })
-    //     return
-    //   }
-    //   Taro.atMessage({
-    //     'message': '发布成功',
-    //     'type': 'success',
-    //   })
-    //   that.setState({
-    //     booksInfo: []
-    //   })
-    // })
+    let putOutPromiseArr = booksInfo.map(this._putOut)
+    await Promise.all(putOutPromiseArr)
+    Taro.atMessage({
+      'message': `发布成功`,
+      'type': 'success',
+    })
+    this.setState({
+      booksInfo: []
+    })
   }
 
   render() {
@@ -332,7 +309,7 @@ export default class Sell extends Component {
           <AtToast onClose={this.closeToast} duration={this.state.toastDuration} isOpened={this.state.isErrorOpened} status={this.state.toastStatus} text={this.state.toastText} icon={this.state.toastIcon}></AtToast>
         </View>
         <View className='modal'>
-          <SeModal content={this.state.modalContent} isOpened={this.state.isModalOpened} onModalHandle={this.modalHandle}></SeModal>
+          <SeModal content={this.state.modalContent} isOpened={this.state.isModalOpened} onConfirmModalHandle={this.modalHandle}></SeModal>
         </View>
         <View className='precent-modal'>
           <AtModal isOpened={this.state.isPercentOpened}>

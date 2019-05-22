@@ -10,6 +10,10 @@ export default class BookCard extends Component {
     this.state = {}
   }
 
+  static defaultProps = {
+    isCloseOpened: true
+  }
+
   componentWillMount() { }
 
   componentDidMount() { }
@@ -40,7 +44,8 @@ export default class BookCard extends Component {
           </View>
         </View>
         <View className='close-fixed'>
-          <AtIcon value='close' size='15' onClick={this.closeBtnClick}></AtIcon>
+          {this.props.isCloseOpened && <AtIcon value='close' size='15' onClick={this.closeBtnClick}></AtIcon>}
+          {!this.props.isCloseOpened && <Image src={this.props.bookInfo.avatarUrl} className='avatal-img'></Image>}
         </View>
       </View>
     )
