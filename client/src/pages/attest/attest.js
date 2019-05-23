@@ -1,5 +1,5 @@
 import Taro, { Component } from '@tarojs/taro'
-import { View } from '@tarojs/components'
+import { View, Picker } from '@tarojs/components'
 import { AtInput, AtButton, AtToast } from 'taro-ui'
 
 import './attest.scss'
@@ -21,7 +21,8 @@ export default class Attest extends Component {
       toastIcon: '',
       toastText: '',
       toastStatus: '',
-      toastDuration: 3000
+      toastDuration: 3000,
+      facultyItems: ['农学', '经管', '工程', '动科', '动医', '电信', '食品', '生命', '园艺', '资环', '水利', '文法', '理学院', '国际', '艺术']
     }
   }
 
@@ -33,12 +34,15 @@ export default class Attest extends Component {
     return value
   }
 
-  facultyChange(value) {
+  facultyChange(e) {
+    let facultyItems = this.state.facultyItems
+    let index = e.detail.value
+    console.log(index)
     this.setState({
-      faculty: value
+      faculty: facultyItems[index]
     })
     // 在小程序中，如果想改变 value 的值，需要 `return value` 从而改变输入框的当前值
-    return value
+    return facultyItems[index]
   }
 
   studentIDChange(value) {
@@ -122,14 +126,16 @@ export default class Attest extends Component {
           value={this.state.userName}
           onChange={this.userNameChange.bind(this)}
         />
-        <AtInput
-          name='faculty'
-          title='学院'
-          type='text'
-          placeholder='请输入学院'
-          value={this.state.faculty}
-          onChange={this.facultyChange.bind(this)}
-        />
+        <Picker mode='selector' range={this.state.facultyItems} onChange={this.facultyChange}>
+          <AtInput
+            name='faculty'
+            title='学院'
+            type='text'
+            placeholder='请输入学院'
+            value={this.state.faculty}
+          // onChange={this.facultyChange.bind(this)}
+          />
+        </Picker>
         <AtInput
           name='studentID'
           title='学号'

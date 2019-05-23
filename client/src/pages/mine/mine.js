@@ -29,30 +29,65 @@ export default class Mine extends Component {
       isModalOpened: false,
       modalContent: '',
       destineBooksInfo: [],
-      isCloseOpened: false
+      isCloseOpened: false,
+      isLoad: false,
+      isPutMore: true,
+      isDestineMore: true
     }
   }
 
-  componentWillMount() {
-    this._getPutBooks()
-    this._getDestineBooks()
+  async componentWillMount() {
+    await this._getPutBooks()
+    await this._getDestineBooks()
   }
 
   componentDidShow() {
     Taro.startPullDownRefresh().then(() => {
-      Taro.stopPullDownRefresh()
+      setTimeout(() => {
+        Taro.stopPullDownRefresh()
+      }, 500);
     })
   }
 
+  // 下拉刷新
   onPullDownRefresh() {
     let that = this
     this.setState({
       currentIndex: 0,
-      booksInfo: []
+      currentDestineIndex: 0,
+      destineBooksInfo: [],
+      booksInfo: [],
+      isLoad: false,
+      isPutMore: true,
+      isDestineMore: true
     }, async () => {
       await that._getPutBooks()
+      await that._getDestineBooks()
       Taro.stopPullDownRefresh()
     })
+  }
+
+  // 上拉加载
+  onReachBottom() {
+    let that = this
+    let currentPage = this.state.currentPage
+    let isPutMore = this.state.isPutMore
+    let isDestineMore = this.state.isDestineMore
+    if (currentPage === 0 && isPutMore) {
+      let currentIndex = this.state.currentIndex
+      this.setState({
+        currentIndex: currentIndex + 1
+      }, () => {
+        that._getPutBooks()
+      })
+    } else if (currentPage === 1 && isDestineMore) {
+      let currentDestineIndex = this.state.currentDestineIndex
+      this.setState({
+        currentIndex: currentDestineIndex + 1,
+      }, () => {
+        that._getDestineBooks()
+      })
+    }
   }
 
   // 分页获取我发布的书籍数据
@@ -66,9 +101,14 @@ export default class Mine extends Component {
         _openid: openId
       }).limit(LIMIT_COUNT).skip(LIMIT_COUNT * currentIndex).get().then(res => {
         let newBooksInfo = booksInfo.concat(res.data)
+        if (res.data.length < LIMIT_COUNT) {
+          that.setState({
+            isPutMore: false
+          })
+        }
         that.setState({
-          currentIndex: currentIndex + 1,
-          booksInfo: newBooksInfo
+          booksInfo: newBooksInfo,
+          isLoad: false
         })
         resolve({ code: ERR_OK })
       }).catch(() => {
@@ -87,9 +127,14 @@ export default class Mine extends Component {
         destineOpenId: openId
       }).limit(LIMIT_COUNT).skip(LIMIT_COUNT * currentDestineIndex).get().then(res => {
         let newBooksInfo = destineBooksInfo.concat(res.data)
+        if (res.data.length < LIMIT_COUNT) {
+          that.setState({
+            isDestineMore: false
+          })
+        }
         that.setState({
-          currentIndex: currentDestineIndex + 1,
-          destineBooksInfo: newBooksInfo
+          destineBooksInfo: newBooksInfo,
+          isLoad: false
         })
         resolve({ code: ERR_OK })
       }).catch(error => {
@@ -99,7 +144,7 @@ export default class Mine extends Component {
     })
   }
 
-  // 分页我发布的与我预订的
+  // 分页'我发布的'与'我预订的'
   handleClick(value) {
     this.setState({
       currentPage: value
@@ -167,6 +212,8 @@ export default class Mine extends Component {
   render() {
     let booksInfo = this.state.booksInfo
     let destineBooksInfo = this.state.destineBooksInfo
+    let isPutMore = this.state.isPutMore
+    let isDestineMore = this.state.isDestineMore
     const DestineBooksList = destineBooksInfo.map((bookItem, index) => {
       return (
         <BookCard onClose={this.closeBtnClick.bind(this, index)} isCloseOpened={this.state.isCloseOpened} key={bookItem._id} taroKey={index} bookInfo={bookItem}>
@@ -226,11 +273,23 @@ export default class Mine extends Component {
             <AtTabsPane current={this.state.currentPage} index={0} >
               <View>
                 {BooksList}
+                {(!booksInfo.length && !this.state.isLoad) && <View className='nothing-wrapper'>
+                  您还没发布任何书籍
+                </View>}
+                {!isPutMore &&
+                  <View className='over-down'>已经到底啦，亲╰(*´︶`*)╯</View>
+                }
               </View>
             </AtTabsPane>
             <AtTabsPane current={this.state.currentPage} index={1}>
               <View>
                 {DestineBooksList}
+                {(!destineBooksInfo.length && !this.state.isLoad) && <View className='nothing-wrapper'>
+                  您还没预订任何书籍
+                </View>}
+                {!isDestineMore &&
+                  <View className='over-down'>已经到底啦，亲╰(*´︶`*)╯</View>
+                }
               </View>
             </AtTabsPane>
           </AtTabs>

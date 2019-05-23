@@ -33,7 +33,10 @@ export default class Sell extends Component {
         { label: '全新', value: 'new' },
         { label: '品相良好', value: 'good' },
         { label: '品相一般', value: 'general' }
-      ]
+      ],
+      putOutModalContent: '书籍发送以后信息不可更改，确认发送吗？',
+      isPutOutModalOpened: false,
+      cancelIsOpen: true
     }
   }
 
@@ -179,9 +182,11 @@ export default class Sell extends Component {
   }
 
   // 手动输入图书信息 - 跳转页面，在另一个页面输入
-  enterInfo() {
-    console.log('手动输入');
-    this.isAttest()
+  async enterInfo() {
+    let ret_code = await this._isAttest()
+    if (ret_code !== 1) {
+      return;
+    }
   }
 
   // 当未完成学生认证的时候会跳转页面完成学生认证
@@ -248,6 +253,12 @@ export default class Sell extends Component {
     if (over_code) {
       return
     }
+    this.setState({
+      isPutOutModalOpened: true
+    })
+  }
+
+  async putOutConfirmModalHandle() {
     let booksInfo = this.state.booksInfo
     let putOutPromiseArr = booksInfo.map(this._putOut)
     await Promise.all(putOutPromiseArr)
@@ -256,7 +267,14 @@ export default class Sell extends Component {
       'type': 'success',
     })
     this.setState({
-      booksInfo: []
+      booksInfo: [],
+      isPutOutModalOpened: false
+    })
+  }
+
+  putOutCancelModalHandle() {
+    this.setState({
+      isPutOutModalOpened: false
     })
   }
 
@@ -289,6 +307,7 @@ export default class Sell extends Component {
       <View className='sell'>
         <ScrollView scrollY enableBackToTop className='book-card'>
           {BooksList}
+          {!booksInfo.length && <View className='nothing-wrapper'>您还没扫描任何书籍</View>}
         </ScrollView>
         <View className='scan-code'>
           <View className='main-btn' onClick={this.scanCode}>
@@ -310,6 +329,9 @@ export default class Sell extends Component {
         </View>
         <View className='modal'>
           <SeModal content={this.state.modalContent} isOpened={this.state.isModalOpened} onConfirmModalHandle={this.modalHandle}></SeModal>
+        </View>
+        <View className='modal'>
+          <SeModal onCancelModalHandle={this.putOutCancelModalHandle} cancelIsOpen={this.state.cancelIsOpen} content={this.state.putOutModalContent} isOpened={this.state.isPutOutModalOpened} onConfirmModalHandle={this.putOutConfirmModalHandle}></SeModal>
         </View>
         <View className='precent-modal'>
           <AtModal isOpened={this.state.isPercentOpened}>

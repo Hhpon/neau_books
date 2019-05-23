@@ -53,5 +53,17 @@
         }
       }
     }
+    .nothing-wrapper{
+      width: 100%;
+      padding-top: 60px;
+      text-align: center;
+      font-size: $fontsize-normal;
+    }
+    .over-down{
+      line-height: 50px;
+      font-size: $fontsize-small;
+      text-align: center;
+      color: $color-light-text;
+    }
   }
 }

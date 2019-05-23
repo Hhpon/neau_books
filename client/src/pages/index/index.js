@@ -1,6 +1,6 @@
 import Taro, { Component } from '@tarojs/taro'
-import { View, Button, Text } from '@tarojs/components'
-import { AtModal, AtModalAction, AtSearchBar, AtMessage } from "taro-ui"
+import { View, Button, Text, ScrollView } from '@tarojs/components'
+import { AtModal, AtModalAction, AtSearchBar, AtMessage, AtDrawer, AtButton } from "taro-ui"
 import { OPENID_STORAGE, LIMIT_COUNT, ERR_OK, ERR_NO } from '@common/js/config'
 import BookCard from '@components/book-card/index'
 import SeModal from '@components/modal/index'
@@ -22,7 +22,7 @@ export default class Index extends Component {
     super();
     this.state = {
       isOpened: false,
-      closeOnClickOverlay: false,
+      closeOnClickOverlay: false,  //点击浮层的时候时候禁止关闭
       currentIndex: 0,  // 分页获取时的页码
       booksInfo: [],
       isModalOpened: false,
@@ -31,7 +31,12 @@ export default class Index extends Component {
       destineModalContent: '',
       isDestineModalOpened: false,
       currentId: '',
-      currentBookIndex: 0
+      currentBookIndex: 0,
+      isMore: true,
+      isLoading: true,
+      isFacultyShow: false,
+      faculty: '全部',
+      facultyItems: ['全部', '农学', '经管', '工程', '动科', '动医', '电信', '食品', '生命', '园艺', '资环', '水利', '文法', '理学院', '国际', '艺术']
     }
   }
 
@@ -46,20 +51,37 @@ export default class Index extends Component {
 
   componentDidShow() {
     Taro.startPullDownRefresh().then(() => {
-      Taro.stopPullDownRefresh()
+      setTimeout(() => {
+        Taro.stopPullDownRefresh()
+      }, 500);
     })
   }
 
   componentDidHide() { }
 
+  // 下拉刷新
   onPullDownRefresh() {
     let that = this
     this.setState({
       currentIndex: 0,
-      booksInfo: []
+      booksInfo: [],
+      isMore: true,
+      isFacultyShow: false,
+      isLoading: true,
+      faculty: '全部'
     }, async () => {
       await that._getAllBooksInfo()
       Taro.stopPullDownRefresh()
+    })
+  }
+
+  onReachBottom() {
+    let that = this
+    let currentIndex = this.state.currentIndex
+    this.setState({
+      currentIndex: currentIndex + 1
+    }, () => {
+      that._getAllBooksInfo()
     })
   }
 
@@ -84,12 +106,32 @@ export default class Index extends Component {
       }).limit(LIMIT_COUNT).skip(LIMIT_COUNT * currentIndex).get().then(res => {
         console.log(res.data);
         let newBooksInfo = booksInfo.concat(res.data)
+        if (res.data.length < LIMIT_COUNT) {
+          that.setState({
+            isMore: false
+          })
+        }
         that.setState({
-          booksInfo: newBooksInfo
+          booksInfo: newBooksInfo,
+          isLoading: false
         })
         resolve({ code: ERR_OK })
       }).catch(err => {
         console.log(err);
+      })
+    })
+  }
+
+  _getFacultyBooksInfo(faculty) {
+    return new Promise((resolve, reject) => {
+      let currentIndex = this.state.currentIndex
+      let booksInfo = this.state.booksInfo
+      let that = this
+      db.collection('boosInfo').where({
+        bookStatus: 0,
+        faculty: faculty
+      }).limit(LIMIT_COUNT).skip(LIMIT_COUNT * currentIndex).get().then(res => {
+        console.log(res.data);
       })
     })
   }
@@ -122,6 +164,15 @@ export default class Index extends Component {
           })
           reject(0)
         })
+    })
+  }
+
+  // 提交预订以前进行的书籍状态校验
+  _isBookStatus(_id) {
+    return new Promise((resolve) => {
+      db.collection('booksInfo').doc(_id).get().then(res => {
+        resolve(res.data.bookStatus)
+      })
     })
   }
 
@@ -200,10 +251,24 @@ export default class Index extends Component {
     console.log('跳转到搜索页面');
   }
 
-  btnConfirmModalHandle() {
+  async btnConfirmModalHandle() {
     let _id = this.state.currentId
     let that = this
     let currentBookIndex = this.state.currentBookIndex
+    let retStatus = await this._isBookStatus(_id);
+    console.log(retStatus);
+    if (retStatus) {
+      Taro.atMessage({
+        'message': '预订失败',
+        'type': 'info'
+      })
+      Taro.startPullDownRefresh().then(() => {
+        setTimeout(() => {
+          Taro.stopPullDownRefresh()
+        }, 500);
+      })
+      return
+    }
     Taro.cloud.callFunction({
       name: 'destineBook',
       data: { _id: _id }
@@ -216,19 +281,47 @@ export default class Index extends Component {
       let booksInfo = this.state.booksInfo
       booksInfo.splice(currentBookIndex, 1)
       that.setState({
+        isDestineModalOpened: false,
         booksInfo: booksInfo
       })
     })
   }
 
+  // 点击模态框的取消按钮
   btnCancelModalHandle() {
     this.setState({
       isDestineModalOpened: false
     })
   }
 
+  // 点击修改当前学院
+  searchFaculty() {
+    this.setState({
+      isFacultyShow: true
+    })
+  }
+
+  facultySelected(index) {
+    console.log(index);
+    let that = this
+    let facultyItems = this.state.facultyItems
+    this.setState({
+      isFacultyShow: false,
+      currentIndex: 0,
+      booksInfo: [],
+      isMore: true,
+      isLoading: true,
+      faculty: facultyItems[index]
+    }, () => {
+      that._getFacultyBooksInfo(facultyItems[index])
+    })
+  }
+
   render() {
     let booksInfo = this.state.booksInfo
+    let isMore = this.state.isMore
+    let isLoading = this.state.isLoading
+    let facultyItems = this.state.facultyItems
     const BooksList = booksInfo.map((bookItem, index) => {
       return (
         <BookCard onClose={this.closeBtnClick.bind(this, index)} isCloseOpened={this.state.isCloseOpened} key={bookItem._id} taroKey={index} bookInfo={bookItem}>
@@ -259,9 +352,29 @@ export default class Index extends Component {
             disabled
           />
         </View>
+        {/* <AtButton type='secondary' className='search-faculty' onClick={this.searchFaculty}>当前学院:{this.state.faculty}</AtButton> */}
+        <ScrollView scrollX className='faculty-wrapper'>
+          <View className='search-faculty'>
+            {facultyItems.map((facultyItem, index) => {
+              return <View key={index} className='faculty-item'>{facultyItem}</View>
+            })}
+          </View>
+        </ScrollView>
         <View className='book-list'>
           {BooksList}
+          {(!isMore && booksInfo.length) &&
+            <View className='over-down'>已经到底啦，亲╰(*´︶`*)╯</View>
+          }
+          {(!booksInfo.length && !isLoading) &&
+            <View className='over-down'>
+              还没有人发布书籍！
+          </View>}
         </View>
+        <AtDrawer
+          show={this.state.isFacultyShow}
+          onItemClick={this.facultySelected.bind(this)}
+          items={this.state.facultyItems}
+        ></AtDrawer>
         <AtModal isOpened={this.state.isOpened} closeOnClickOverlay={this.state.closeOnClickOverlay}>
           <View className='model-content'>欢迎你来到东农二手书买卖平台</View>
           <AtModalAction><Button open-type='getUserInfo' ongetuserinfo={this.getuserInfo}>确定</Button></AtModalAction>

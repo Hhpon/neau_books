@@ -4,9 +4,16 @@
 
   .book-card {
     position: fixed;
+    width: 100%;
     top: 0;
-    bottom: 140px;
-
+    bottom: 240px;
+    .nothing-wrapper{
+      width: 100%;
+      text-align: center;
+      font-size: $fontsize-large;
+      position: absolute;
+      top: 50%;
+    }
     .info-des {
       display: flex;
       align-items: center;

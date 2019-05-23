@@ -12,9 +12,9 @@ class App extends Component {
   config = {
     pages: [
       'pages/index/index',
+      'pages/attest/attest',
       'pages/mine/mine',
       'pages/sell/sell',
-      'pages/attest/attest',
     ],
     window: {
       backgroundTextStyle: 'light',
@@ -54,7 +54,9 @@ class App extends Component {
 
   componentDidMount() {
     if (process.env.TARO_ENV === 'weapp') {
-      Taro.cloud.init()
+      Taro.cloud.init({
+        env: 'neaubooks-ua606'
+      })
     }
   }
 

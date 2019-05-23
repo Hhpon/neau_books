@@ -1,7 +1,38 @@
 @import '@common/scss/variable.scss';
 
 .index {
+  .faculty-wrapper {
+    width: 100%;
+    // height: 80px;
+    margin: 30px 0;
+    // box-sizing: border-box;
+
+    .search-faculty {
+      display: flex;
+      padding: 0 10px;
+
+      .faculty-item {
+        line-height: 40px;
+        padding: 0 20px;
+        margin-right: 20px;
+        text-align: center;
+        font-size: $fontsize-small;
+        color: $color-strong-text;
+        border-radius: 5px;
+        border: 1px solid $color-theme-corder;
+        flex: 1 0 auto;
+      }
+    }
+  }
+
   .book-list {
+    .over-down {
+      line-height: 50px;
+      font-size: $fontsize-small;
+      text-align: center;
+      color: $color-light-text;
+    }
+
     .info-des {
       display: flex;
       justify-content: space-between;
