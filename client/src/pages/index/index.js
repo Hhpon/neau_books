@@ -1,6 +1,6 @@
 import Taro, { Component } from '@tarojs/taro'
 import { View, Button, Text, ScrollView } from '@tarojs/components'
-import { AtModal, AtModalAction, AtSearchBar, AtMessage, AtDrawer, AtButton } from "taro-ui"
+import { AtModal, AtModalAction, AtSearchBar, AtMessage } from "taro-ui"
 import { OPENID_STORAGE, LIMIT_COUNT, ERR_OK, ERR_NO } from '@common/js/config'
 import BookCard from '@components/book-card/index'
 import SeModal from '@components/modal/index'
@@ -34,8 +34,7 @@ export default class Index extends Component {
       currentBookIndex: 0,
       isMore: true,
       isLoading: true,
-      isFacultyShow: false,
-      faculty: '全部',
+      currentTagIndex: 0,
       facultyItems: ['全部', '农学', '经管', '工程', '动科', '动医', '电信', '食品', '生命', '园艺', '资环', '水利', '文法', '理学院', '国际', '艺术']
     }
   }
@@ -66,9 +65,7 @@ export default class Index extends Component {
       currentIndex: 0,
       booksInfo: [],
       isMore: true,
-      isFacultyShow: false,
-      isLoading: true,
-      faculty: '全部'
+      isLoading: true
     }, async () => {
       await that._getAllBooksInfo()
       Taro.stopPullDownRefresh()
@@ -127,11 +124,25 @@ export default class Index extends Component {
       let currentIndex = this.state.currentIndex
       let booksInfo = this.state.booksInfo
       let that = this
-      db.collection('boosInfo').where({
+      db.collection('booksInfo').where({
         bookStatus: 0,
         faculty: faculty
       }).limit(LIMIT_COUNT).skip(LIMIT_COUNT * currentIndex).get().then(res => {
         console.log(res.data);
+        let newBooksInfo = booksInfo.concat(res.data)
+        if (res.data.length < LIMIT_COUNT) {
+          that.setState({
+            isMore: false
+          })
+        }
+        that.setState({
+          booksInfo: newBooksInfo,
+          isLoading: false
+        })
+        resolve(res.data)
+      }).catch(error => {
+        console.log(error);
+        reject(error)
       })
     })
   }
@@ -295,25 +306,21 @@ export default class Index extends Component {
   }
 
   // 点击修改当前学院
-  searchFaculty() {
-    this.setState({
-      isFacultyShow: true
-    })
-  }
-
-  facultySelected(index) {
-    console.log(index);
+  facultySelected(facultyItem, index) {
+    console.log(facultyItem);
     let that = this
-    let facultyItems = this.state.facultyItems
     this.setState({
-      isFacultyShow: false,
       currentIndex: 0,
       booksInfo: [],
       isMore: true,
       isLoading: true,
-      faculty: facultyItems[index]
+      currentTagIndex: index
     }, () => {
-      that._getFacultyBooksInfo(facultyItems[index])
+      if (index === 0) {
+        that._getAllBooksInfo()
+        return
+      }
+      that._getFacultyBooksInfo(facultyItem)
     })
   }
 
@@ -322,6 +329,7 @@ export default class Index extends Component {
     let isMore = this.state.isMore
     let isLoading = this.state.isLoading
     let facultyItems = this.state.facultyItems
+    let currentTagIndex = this.state.currentTagIndex
     const BooksList = booksInfo.map((bookItem, index) => {
       return (
         <BookCard onClose={this.closeBtnClick.bind(this, index)} isCloseOpened={this.state.isCloseOpened} key={bookItem._id} taroKey={index} bookInfo={bookItem}>
@@ -352,11 +360,10 @@ export default class Index extends Component {
             disabled
           />
         </View>
-        {/* <AtButton type='secondary' className='search-faculty' onClick={this.searchFaculty}>当前学院:{this.state.faculty}</AtButton> */}
-        <ScrollView scrollX className='faculty-wrapper'>
+        <ScrollView className='faculty-wrapper'>
           <View className='search-faculty'>
             {facultyItems.map((facultyItem, index) => {
-              return <View key={index} className='faculty-item'>{facultyItem}</View>
+              return <View onClick={this.facultySelected.bind(this, facultyItem, index)} key={index} className={currentTagIndex === index ? 'faculty-item faculty-item-active' : 'faculty-item'}>{facultyItem}</View>
             })}
           </View>
         </ScrollView>
@@ -370,11 +377,6 @@ export default class Index extends Component {
               还没有人发布书籍！
           </View>}
         </View>
-        <AtDrawer
-          show={this.state.isFacultyShow}
-          onItemClick={this.facultySelected.bind(this)}
-          items={this.state.facultyItems}
-        ></AtDrawer>
         <AtModal isOpened={this.state.isOpened} closeOnClickOverlay={this.state.closeOnClickOverlay}>
           <View className='model-content'>欢迎你来到东农二手书买卖平台</View>
           <AtModalAction><Button open-type='getUserInfo' ongetuserinfo={this.getuserInfo}>确定</Button></AtModalAction>

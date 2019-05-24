@@ -1,6 +1,7 @@
 import Taro, { Component } from '@tarojs/taro'
-import { View, Picker } from '@tarojs/components'
-import { AtInput, AtButton, AtToast } from 'taro-ui'
+import { View, Picker, Input, Text } from '@tarojs/components'
+import { AtInput, AtButton, AtMessage } from 'taro-ui'
+import SeModal from '@components/modal/index'
 
 import './attest.scss'
 
@@ -17,11 +18,8 @@ export default class Attest extends Component {
       faculty: '',
       studentID: '',
       tel: '',
-      isErrorOpened: false,
-      toastIcon: '',
-      toastText: '',
-      toastStatus: '',
-      toastDuration: 3000,
+      attestModalContent: '认证信息提交以后不能更改，请确认是否提交',
+      isAttestModalOpened: false,
       facultyItems: ['农学', '经管', '工程', '动科', '动医', '电信', '食品', '生命', '园艺', '资环', '水利', '文法', '理学院', '国际', '艺术']
     }
   }
@@ -71,46 +69,67 @@ export default class Attest extends Component {
 
     for (let key in userInfo) {
       if (!userInfo[key]) {
-        this.setState({
-          isErrorOpened: true,
-          toastText: '请输入完整',
-          toastStatus: 'error',
-          toastDuration: 2000,
+        Taro.atMessage({
+          'message': '请输入完整',
+          'type': 'error',
         })
         return
       }
     }
-    let that = this
+    this.setState({
+      isAttestModalOpened: true
+    })
+  }
+
+  // 点击模态框的确认按钮
+  btnConfirmModalHandle() {
+    let userInfo = {
+      userName: this.state.userName,
+      faculty: this.state.faculty,
+      studentID: this.state.studentID,
+      tel: this.state.tel
+    }
     Taro.cloud.callFunction({
       name: 'updateUserinfo',
       data: userInfo
     }).then(res => {
       let updateCount = res.result.stats.updated
       if (updateCount > 0) {
-        that.setState({
-          isErrorOpened: true,
-          toastText: '更新成功',
-          toastStatus: 'success',
-          toastDuration: 2000,
+        Taro.atMessage({
+          'message': '认证成功',
+          'type': 'success',
         })
-        Taro.navigateBack({ delta: 1 })
+        setTimeout(() => {
+          Taro.navigateBack({ delta: 1 })
+        }, 1000)
+        this.setState({
+          isAttestModalOpened: false
+        })
         return
       }
-      that.setState({
-        isErrorOpened: true,
-        toastText: '数据未更新',
-        toastIcon: 'alert-circle',
-        toastDuration: 2000,
+      Taro.atMessage({
+        'message': '数据未更新',
+        'type': 'info',
+      })
+      this.setState({
+        isAttestModalOpened: false
       })
     }).catch(() => {
-      that.setState({
-        isErrorOpened: true,
-        toastText: '网络出现问题，请联系开发者',
-        toastStatus: 'error',
-        toastDuration: 2000,
+      Taro.atMessage({
+        'message': '网络出现问题，请联系开发者',
+        'type': 'error',
+      })
+      this.setState({
+        isAttestModalOpened: false
       })
     })
+  }
 
+  // 点击模态框的取消按钮
+  btnCancelModalHandle() {
+    this.setState({
+      isAttestModalOpened: false
+    })
   }
 
   render() {
@@ -133,7 +152,6 @@ export default class Attest extends Component {
             type='text'
             placeholder='请输入学院'
             value={this.state.faculty}
-          // onChange={this.facultyChange.bind(this)}
           />
         </Picker>
         <AtInput
@@ -154,9 +172,10 @@ export default class Attest extends Component {
         />
         <View className='empty'></View>
         <AtButton onClick={this.attestInfo} type='primary'>提交</AtButton>
-        <View className='toast'>
-          <AtToast duration={this.state.toastDuration} isOpened={this.state.isErrorOpened} status={this.state.toastStatus} text={this.state.toastText} icon={this.state.toastIcon}></AtToast>
+        <View className='modal'>
+          <SeModal cancelIsOpen content={this.state.attestModalContent} isOpened={this.state.isAttestModalOpened} onConfirmModalHandle={this.btnConfirmModalHandle} onCancelModalHandle={this.btnCancelModalHandle}></SeModal>
         </View>
+        <AtMessage />
       </View>
     )
   }

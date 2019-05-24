@@ -276,7 +276,7 @@ export default class Mine extends Component {
                 {(!booksInfo.length && !this.state.isLoad) && <View className='nothing-wrapper'>
                   您还没发布任何书籍
                 </View>}
-                {!isPutMore &&
+                {(!isPutMore && booksInfo.length) &&
                   <View className='over-down'>已经到底啦，亲╰(*´︶`*)╯</View>
                 }
               </View>
@@ -287,7 +287,7 @@ export default class Mine extends Component {
                 {(!destineBooksInfo.length && !this.state.isLoad) && <View className='nothing-wrapper'>
                   您还没预订任何书籍
                 </View>}
-                {!isDestineMore &&
+                {(!isDestineMore && destineBooksInfo.length) &&
                   <View className='over-down'>已经到底啦，亲╰(*´︶`*)╯</View>
                 }
               </View>
