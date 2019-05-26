@@ -1,7 +1,7 @@
 import Taro, { Component } from '@tarojs/taro'
 import { View, Button, Text, ScrollView } from '@tarojs/components'
 import { AtModal, AtModalAction, AtSearchBar, AtMessage } from "taro-ui"
-import { OPENID_STORAGE, LIMIT_COUNT, ERR_OK, ERR_NO } from '@common/js/config'
+import { OPENID_STORAGE, LIMIT_COUNT, ERR_OK } from '@common/js/config'
 import BookCard from '@components/book-card/index'
 import SeModal from '@components/modal/index'
 
@@ -26,7 +26,7 @@ export default class Index extends Component {
       currentIndex: 0,  // 分页获取时的页码
       booksInfo: [],
       isModalOpened: false,
-      modalContent: '完成学生认证才可继续发布书籍',
+      modalContent: '完成学生认证才可继续预订书籍',
       isCloseOpened: false,
       destineModalContent: '',
       isDestineModalOpened: false,
@@ -41,7 +41,6 @@ export default class Index extends Component {
 
   componentWillMount() {
     this.isAuthorize()
-    this._getAllBooksInfo()
   }
 
   componentDidMount() { }
@@ -61,13 +60,20 @@ export default class Index extends Component {
   // 下拉刷新
   onPullDownRefresh() {
     let that = this
+    let currentTagIndex = this.state.currentTagIndex
+    let facultyItem = this.state.facultyItems[currentTagIndex]
     this.setState({
       currentIndex: 0,
       booksInfo: [],
       isMore: true,
       isLoading: true
     }, async () => {
-      await that._getAllBooksInfo()
+      if (currentTagIndex === 0) {
+        await that._getAllBooksInfo()
+        Taro.stopPullDownRefresh()
+        return
+      }
+      await that._getFacultyBooksInfo(facultyItem)
       Taro.stopPullDownRefresh()
     })
   }
@@ -100,8 +106,7 @@ export default class Index extends Component {
       let that = this
       db.collection('booksInfo').where({
         bookStatus: 0
-      }).limit(LIMIT_COUNT).skip(LIMIT_COUNT * currentIndex).get().then(res => {
-        console.log(res.data);
+      }).limit(LIMIT_COUNT).skip(LIMIT_COUNT * currentIndex).orderBy('putOutTime', 'desc').get().then(res => {
         let newBooksInfo = booksInfo.concat(res.data)
         if (res.data.length < LIMIT_COUNT) {
           that.setState({
@@ -127,8 +132,7 @@ export default class Index extends Component {
       db.collection('booksInfo').where({
         bookStatus: 0,
         faculty: faculty
-      }).limit(LIMIT_COUNT).skip(LIMIT_COUNT * currentIndex).get().then(res => {
-        console.log(res.data);
+      }).limit(LIMIT_COUNT).skip(LIMIT_COUNT * currentIndex).orderBy('putOutTime', 'desc').get().then(res => {
         let newBooksInfo = booksInfo.concat(res.data)
         if (res.data.length < LIMIT_COUNT) {
           that.setState({
@@ -141,7 +145,6 @@ export default class Index extends Component {
         })
         resolve(res.data)
       }).catch(error => {
-        console.log(error);
         reject(error)
       })
     })
@@ -157,7 +160,6 @@ export default class Index extends Component {
         _openid: openId
       }).get()
         .then((res) => {
-          console.log('async')
           if (!res.data[0].studentID) {
             that.setState({
               isModalOpened: true
@@ -168,7 +170,6 @@ export default class Index extends Component {
           resolve(1)
         })
         .catch(() => {
-          console.log('catch');
           Taro.atMessage({
             'message': '网络出现问题，请稍后再试',
             'type': 'error',
@@ -203,7 +204,6 @@ export default class Index extends Component {
         })
       })
       .catch(() => {
-        console.log('catch');
       })
   }
 
@@ -227,7 +227,6 @@ export default class Index extends Component {
 
   // 当未完成学生认证的时候会跳转页面完成学生认证
   modalHandle() {
-    console.log('您正在点击modal确定按钮');
     Taro.navigateTo({ url: '/pages/attest/attest' })
     this.setState({
       isModalOpened: false
@@ -245,11 +244,9 @@ export default class Index extends Component {
       return
     }
     let ret_code = await this._isAttest()
-    console.log(ret_code);
     if (!ret_code) {
       return
     }
-    console.log('可预订');
     this.setState({
       destineModalContent: '预订后不能退订，确认预订嘛',
       isDestineModalOpened: true,
@@ -259,7 +256,7 @@ export default class Index extends Component {
   }
 
   searchHandle() {
-    console.log('跳转到搜索页面');
+    Taro.navigateTo({ url: '/pages/search/search' })
   }
 
   async btnConfirmModalHandle() {
@@ -267,7 +264,6 @@ export default class Index extends Component {
     let that = this
     let currentBookIndex = this.state.currentBookIndex
     let retStatus = await this._isBookStatus(_id);
-    console.log(retStatus);
     if (retStatus) {
       Taro.atMessage({
         'message': '预订失败',
@@ -307,7 +303,6 @@ export default class Index extends Component {
 
   // 点击修改当前学院
   facultySelected(facultyItem, index) {
-    console.log(facultyItem);
     let that = this
     this.setState({
       currentIndex: 0,
@@ -360,7 +355,7 @@ export default class Index extends Component {
             disabled
           />
         </View>
-        <ScrollView className='faculty-wrapper'>
+        <ScrollView scrollX className='faculty-wrapper'>
           <View className='search-faculty'>
             {facultyItems.map((facultyItem, index) => {
               return <View onClick={this.facultySelected.bind(this, facultyItem, index)} key={index} className={currentTagIndex === index ? 'faculty-item faculty-item-active' : 'faculty-item'}>{facultyItem}</View>

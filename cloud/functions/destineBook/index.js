@@ -23,7 +23,7 @@ function waitGetUserInfo(openId) {
 exports.main = async (event, context) => new Promise(async (resolve, reject) => {
   const openId = cloud.getWXContext().OPENID
   const { _id } = event
-  console.log(openId);
+  const time = new Date().getTime()
   let destineUser = await waitGetUserInfo(openId)
   db.collection('booksInfo').doc(_id).update({
     data: {
@@ -32,6 +32,7 @@ exports.main = async (event, context) => new Promise(async (resolve, reject) => 
       destineStudentID: destineUser.studentID,
       destineTel: destineUser.tel,
       destineOpenId: destineUser._openid,
+      destineTime: time,
       bookStatus: 1
     }
   }).then(res => {

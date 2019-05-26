@@ -21,6 +21,7 @@ function waitAdd(bookInfo) {
 // 云函数入口函数
 exports.main = async (event, context) => new Promise((resolve, reject) => {
   const openid = cloud.getWXContext().OPENID
+  const time = new Date().getTime()
   db.collection('userInfo').where({
     _openid: openid
   }).get().then(async (res) => {
@@ -42,7 +43,8 @@ exports.main = async (event, context) => new Promise((resolve, reject) => {
       faculty: userInfo.faculty,
       studentID: userInfo.studentID,
       tel: userInfo.tel,
-      userName: userInfo.userName
+      userName: userInfo.userName,
+      putOutTime: time
     }
     await waitAdd(bookInfo)
     resolve({ code: 1 })

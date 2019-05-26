@@ -37,8 +37,6 @@ export default class Mine extends Component {
   }
 
   async componentWillMount() {
-    await this._getPutBooks()
-    await this._getDestineBooks()
   }
 
   componentDidShow() {
@@ -99,7 +97,7 @@ export default class Mine extends Component {
     return new Promise((resolve, reject) => {
       db.collection('booksInfo').where({
         _openid: openId
-      }).limit(LIMIT_COUNT).skip(LIMIT_COUNT * currentIndex).get().then(res => {
+      }).limit(LIMIT_COUNT).skip(LIMIT_COUNT * currentIndex).orderBy('putOutTime','desc').get().then(res => {
         let newBooksInfo = booksInfo.concat(res.data)
         if (res.data.length < LIMIT_COUNT) {
           that.setState({
@@ -125,7 +123,7 @@ export default class Mine extends Component {
     return new Promise((resolve, reject) => {
       db.collection('booksInfo').where({
         destineOpenId: openId
-      }).limit(LIMIT_COUNT).skip(LIMIT_COUNT * currentDestineIndex).get().then(res => {
+      }).limit(LIMIT_COUNT).skip(LIMIT_COUNT * currentDestineIndex).orderBy('destineTime','desc').get().then(res => {
         let newBooksInfo = destineBooksInfo.concat(res.data)
         if (res.data.length < LIMIT_COUNT) {
           that.setState({
@@ -153,14 +151,12 @@ export default class Mine extends Component {
 
   // 点击差的时候的方法
   async closeBtnClick(index) {
-    console.log(index);
     let booksInfo = this.state.booksInfo;
     // let bookStatus = booksInfo[index].bookStatus
     let _id = booksInfo[index]._id
     let that = this
     db.collection('booksInfo').doc(_id).get().then((res) => {
       let bookStatus = res.data.bookStatus
-      console.log(res);
       if (bookStatus) {
         Taro.atMessage({
           'message': '该书籍已经被预订，不可删除！',

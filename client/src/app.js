@@ -11,8 +11,10 @@ class App extends Component {
 
   config = {
     pages: [
-      'pages/attest/attest',
       'pages/index/index',
+      'pages/attest/attest',
+      'pages/manual/manual',
+      'pages/search/search',
       'pages/mine/mine',
       'pages/sell/sell',
     ],
@@ -21,7 +23,7 @@ class App extends Component {
       navigationBarBackgroundColor: '#6190E8',
       navigationBarTitleText: 'WeChat',
       navigationBarTextStyle: 'white',
-      backgroundColor:'#6190E8'
+      backgroundColor: '#6190E8'
     },
     tabBar: {
       color: '#999',

@@ -1,0 +1,25 @@
+.se-input {
+  margin-left: 35px;
+  margin-right: 20px;
+  height: 8vh;
+  display: flex;
+  align-items: center;
+  font-size: 32px;
+  border-bottom: 2px solid #f0f0f0;
+
+  Text {
+    width: 25%;
+  }
+
+  .is-error{
+    color: red;
+  }
+
+  Input {
+    flex: 1;
+  }
+
+  .alert-icon{
+
+  }
+}

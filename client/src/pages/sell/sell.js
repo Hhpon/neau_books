@@ -3,9 +3,8 @@ import { View, Text, Input, ScrollView, Button } from '@tarojs/components'
 import { AtIcon, AtToast, AtModal, AtRadio, AtMessage } from 'taro-ui'
 import SeModal from '@components/modal/index'
 import BookCard from '@components/book-card/index'
-import { OPENID_STORAGE } from '@common/js/config'
+import { OPENID_STORAGE,ERR_OK } from '@common/js/config'
 import './sell.scss'
-import { ERR_OK } from '../../common/js/config';
 
 const db = Taro.cloud.database()
 
@@ -187,6 +186,7 @@ export default class Sell extends Component {
     if (ret_code !== 1) {
       return;
     }
+    Taro.navigateTo({ url: '/pages/manual/manual' })
   }
 
   // 当未完成学生认证的时候会跳转页面完成学生认证
