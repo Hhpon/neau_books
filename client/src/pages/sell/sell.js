@@ -3,7 +3,7 @@ import { View, Text, Input, ScrollView, Button } from '@tarojs/components'
 import { AtIcon, AtToast, AtModal, AtRadio, AtMessage } from 'taro-ui'
 import SeModal from '@components/modal/index'
 import BookCard from '@components/book-card/index'
-import { OPENID_STORAGE,ERR_OK } from '@common/js/config'
+import { OPENID_STORAGE, ERR_OK } from '@common/js/config'
 import './sell.scss'
 
 const db = Taro.cloud.database()
@@ -278,6 +278,12 @@ export default class Sell extends Component {
     })
   }
 
+  putOutCancelHandle() {
+    this.setState({
+      isModalOpened: false
+    })
+  }
+
   render() {
     let booksInfo = this.state.booksInfo;
     let totalPrice = function () {
@@ -328,7 +334,7 @@ export default class Sell extends Component {
           <AtToast onClose={this.closeToast} duration={this.state.toastDuration} isOpened={this.state.isErrorOpened} status={this.state.toastStatus} text={this.state.toastText} icon={this.state.toastIcon}></AtToast>
         </View>
         <View className='modal'>
-          <SeModal content={this.state.modalContent} isOpened={this.state.isModalOpened} onConfirmModalHandle={this.modalHandle}></SeModal>
+          <SeModal onCancelModalHandle={this.putOutCancelHandle} cancelIsOpen content={this.state.modalContent} isOpened={this.state.isModalOpened} onConfirmModalHandle={this.modalHandle}></SeModal>
         </View>
         <View className='modal'>
           <SeModal onCancelModalHandle={this.putOutCancelModalHandle} cancelIsOpen={this.state.cancelIsOpen} content={this.state.putOutModalContent} isOpened={this.state.isPutOutModalOpened} onConfirmModalHandle={this.putOutConfirmModalHandle}></SeModal>

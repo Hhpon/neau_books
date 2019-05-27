@@ -1,6 +1,6 @@
 export const OPENID_STORAGE = 'openid'
 export const HISTORY_STORAGE = 'searchHhistory'
-export const LIMIT_COUNT = 20
+export const LIMIT_COUNT = 10
 export const ERR_OK = 1
 export const ERR_NO = 0
 

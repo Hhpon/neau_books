@@ -78,13 +78,20 @@ export default class Index extends Component {
     })
   }
 
+  // 上拉加载
   onReachBottom() {
     let that = this
     let currentIndex = this.state.currentIndex
+    let currentTagIndex = this.state.currentTagIndex
     this.setState({
       currentIndex: currentIndex + 1
     }, () => {
-      that._getAllBooksInfo()
+      if (currentTagIndex === 0) {
+        that._getAllBooksInfo()
+        return
+      }
+      let facultyItem = this.state.facultyItems[currentTagIndex]
+      that._getFacultyBooksInfo(facultyItem)
     })
   }
 
@@ -301,6 +308,12 @@ export default class Index extends Component {
     })
   }
 
+  btnCancelHandle() {
+    this.setState({
+      isModalOpened: false
+    })
+  }
+
   // 点击修改当前学院
   facultySelected(facultyItem, index) {
     let that = this
@@ -373,11 +386,11 @@ export default class Index extends Component {
           </View>}
         </View>
         <AtModal isOpened={this.state.isOpened} closeOnClickOverlay={this.state.closeOnClickOverlay}>
-          <View className='model-content'>欢迎你来到东农二手书买卖平台</View>
+          <View className='model-content'>欢迎你来到东农二手书买卖平台，请完成授权登录以体验完整功能</View>
           <AtModalAction><Button open-type='getUserInfo' ongetuserinfo={this.getuserInfo}>确定</Button></AtModalAction>
         </AtModal>
         <View className='modal'>
-          <SeModal content={this.state.modalContent} isOpened={this.state.isModalOpened} onConfirmModalHandle={this.modalHandle}></SeModal>
+          <SeModal cancelIsOpen content={this.state.modalContent} isOpened={this.state.isModalOpened} onConfirmModalHandle={this.modalHandle} onCancelModalHandle={this.btnCancelHandle}></SeModal>
         </View>
         <View className='modal'>
           <SeModal cancelIsOpen content={this.state.destineModalContent} isOpened={this.state.isDestineModalOpened} onConfirmModalHandle={this.btnConfirmModalHandle} onCancelModalHandle={this.btnCancelModalHandle}></SeModal>

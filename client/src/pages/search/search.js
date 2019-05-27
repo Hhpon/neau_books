@@ -27,6 +27,7 @@ export default class Search extends Component {
       isCloseOpened: false,
       destineModalContent: '',
       isDestineModalOpened: false,
+      currentIndex: 0,
       currentId: '',
       currentBookIndex: 0,
       timer: null
@@ -35,6 +36,18 @@ export default class Search extends Component {
 
   componentDidShow() {
     this._getSearchHistory()
+  }
+
+  // 上拉加载
+  onReachBottom() {
+    let that = this
+    let currentIndex = this.state.currentIndex
+    let searchValue = this.state.searchValue
+    this.setState({
+      currentIndex: currentIndex + 1
+    }, () => {
+      that._getSearchInfo(searchValue)
+    })
   }
 
   // 检测是否完成学生认证
@@ -97,11 +110,12 @@ export default class Search extends Component {
   // 模糊获取搜索信息
   _getSearchInfo(value) {
     // JavaScript高级程序设计（第3版）
+    let currentIndex = this.state.currentIndex
     let searchTitle = new RegExp('.*' + value + '.*', 'i')
     return db.collection('booksInfo').where({
       title: searchTitle,
       bookStatus: 0
-    }).orderBy('price', 'asc').limit(LIMIT_COUNT).skip(0).get()
+    }).orderBy('price', 'asc').limit(LIMIT_COUNT).skip(LIMIT_COUNT * currentIndex).get()
   }
 
   // 提交预订以前进行的书籍状态校验
@@ -175,6 +189,12 @@ export default class Search extends Component {
   btnCancelModalHandle() {
     this.setState({
       isDestineModalOpened: false
+    })
+  }
+
+  btnCancelHandle() {
+    this.setState({
+      isModalOpened: false
     })
   }
 
@@ -341,7 +361,7 @@ export default class Search extends Component {
           <SeModal cancelIsOpen content={this.state.destineModalContent} isOpened={this.state.isDestineModalOpened} onConfirmModalHandle={this.btnConfirmModalHandle} onCancelModalHandle={this.btnCancelModalHandle}></SeModal>
         </View>
         <View className='modal'>
-          <SeModal content={this.state.modalContent} isOpened={this.state.isModalOpened} onConfirmModalHandle={this.modalHandle}></SeModal>
+          <SeModal cancelIsOpen content={this.state.modalContent} isOpened={this.state.isModalOpened} onConfirmModalHandle={this.modalHandle} onCancelModalHandle={this.btnCancelHandle}></SeModal>
         </View>
         <AtMessage />
       </View>
