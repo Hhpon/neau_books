@@ -259,9 +259,14 @@ export default class Sell extends Component {
   }
 
   async putOutConfirmModalHandle() {
+    Taro.showLoading({
+      title: '加载中',
+      mask: true
+    })
     let booksInfo = this.state.booksInfo
     let putOutPromiseArr = booksInfo.map(this._putOut)
     await Promise.all(putOutPromiseArr)
+    Taro.hideLoading()
     Taro.atMessage({
       'message': `发布成功`,
       'type': 'success',

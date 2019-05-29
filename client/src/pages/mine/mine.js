@@ -97,7 +97,7 @@ export default class Mine extends Component {
     return new Promise((resolve, reject) => {
       db.collection('booksInfo').where({
         _openid: openId
-      }).limit(LIMIT_COUNT).skip(LIMIT_COUNT * currentIndex).orderBy('putOutTime','desc').get().then(res => {
+      }).limit(LIMIT_COUNT).skip(LIMIT_COUNT * currentIndex).orderBy('putOutTime', 'desc').get().then(res => {
         let newBooksInfo = booksInfo.concat(res.data)
         if (res.data.length < LIMIT_COUNT) {
           that.setState({
@@ -123,7 +123,7 @@ export default class Mine extends Component {
     return new Promise((resolve, reject) => {
       db.collection('booksInfo').where({
         destineOpenId: openId
-      }).limit(LIMIT_COUNT).skip(LIMIT_COUNT * currentDestineIndex).orderBy('destineTime','desc').get().then(res => {
+      }).limit(LIMIT_COUNT).skip(LIMIT_COUNT * currentDestineIndex).orderBy('destineTime', 'desc').get().then(res => {
         let newBooksInfo = destineBooksInfo.concat(res.data)
         if (res.data.length < LIMIT_COUNT) {
           that.setState({
@@ -205,6 +205,36 @@ export default class Mine extends Component {
     })
   }
 
+  // 改变书籍预订状态
+  destineChange(id, index) {
+    console.log(id);
+    console.log(index);
+    Taro.showLoading({
+      title: '加载中',
+      mask: true
+    })
+    let that = this
+    let destineBooksInfo = this.state.destineBooksInfo
+    Taro.cloud.callFunction({
+      name: 'destineChange',
+      data: {
+        id: id
+      }
+    }).then(res => {
+      console.log(res);
+      if (res.result.stats.updated !== 1) {
+        return
+      }
+      destineBooksInfo[index].bookStatus = 2
+      that.setState({
+        destineBooksInfo: destineBooksInfo
+      })
+      Taro.hideLoading()
+    }).catch(err => {
+      console.log(err);
+    })
+  }
+
   render() {
     let booksInfo = this.state.booksInfo
     let destineBooksInfo = this.state.destineBooksInfo
@@ -224,9 +254,18 @@ export default class Mine extends Component {
               </View>
             </View>
             <View className='des-right'>
-              <View>
-                已预订
-              </View>
+              {
+                (bookItem.bookStatus === 1) &&
+                <View onClick={this.destineChange.bind(this, bookItem._id, index)}>
+                  已预订
+                </View>
+              }
+              {
+                (bookItem.bookStatus === 2) &&
+                <View>
+                  已完成
+                </View>
+              }
             </View>
           </View>
         </BookCard>

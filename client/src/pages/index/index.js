@@ -245,7 +245,7 @@ export default class Index extends Component {
     let openId = Taro.getStorageSync(OPENID_STORAGE)
     if (openId === _openid) {
       Taro.atMessage({
-        'message': '不能预订自己的书籍，笨蛋',
+        'message': '不能预订自己的书籍',
         'type': 'info',
       })
       return
@@ -267,11 +267,16 @@ export default class Index extends Component {
   }
 
   async btnConfirmModalHandle() {
+    Taro.showLoading({
+      title: '加载中',
+      mask: true
+    })
     let _id = this.state.currentId
     let that = this
     let currentBookIndex = this.state.currentBookIndex
     let retStatus = await this._isBookStatus(_id);
     if (retStatus) {
+      Taro.hideLoading()
       Taro.atMessage({
         'message': '预订失败',
         'type': 'info'
@@ -288,6 +293,7 @@ export default class Index extends Component {
       data: { _id: _id }
     }).then(res => {
       console.log(res);
+      Taro.hideLoading()
       Taro.atMessage({
         'message': '预订成功',
         'type': 'success'

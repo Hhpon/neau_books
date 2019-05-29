@@ -167,23 +167,26 @@ export default class Manual extends Component {
 
   // 点击确认发布按钮
   putOutOne() {
-    let percentStatus = this.state.percentStatus
-    if (this.state.isTitleError || this.state.isAuthorError || this.state.isPriceError || this.state.isNowPriceError || !percentStatus) {
-      Taro.atMessage({
-        'message': '请正确填写内容',
-        'type': 'error',
+    setTimeout(() => {
+      let percentStatus = this.state.percentStatus
+      if (this.state.isTitleError || this.state.isAuthorError || this.state.isPriceError || this.state.isNowPriceError || !percentStatus || !this.state.title || !this.state.author || !this.state.price || !this.state.nowPrice) {
+        Taro.atMessage({
+          'message': '请正确填写内容',
+          'type': 'error',
+        })
+        return
+      }
+      this.setState({
+        isPutOutModalOpened: true
       })
-      return
-    }
-    this.setState({
-      isPutOutModalOpened: true
-    })
+    }, 200)
   }
 
   async putOutConfirmModalHandle() {
-    // let booksInfo = this.state.booksInfo
-    // let putOutPromiseArr = booksInfo.map(this._putOut)
-    // await Promise.all(putOutPromiseArr)
+    Taro.showLoading({
+      title: '加载中',
+      mask: true
+    })
     let bookItem = {
       title: this.state.title,
       author: this.state.author,
@@ -194,6 +197,7 @@ export default class Manual extends Component {
     }
     let ret_code = await this._putOut(bookItem)
     if (ret_code.code !== ERR_OK) {
+      Taro.hideLoading()
       Taro.atMessage({
         'message': `发布失败，请稍后重试`,
         'type': 'error',
@@ -203,6 +207,7 @@ export default class Manual extends Component {
     this.setState({
       isPutOutModalOpened: false
     })
+    Taro.hideLoading()
     Taro.atMessage({
       'message': `发布成功`,
       'type': 'success',

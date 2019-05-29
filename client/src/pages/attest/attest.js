@@ -104,20 +104,26 @@ export default class Attest extends Component {
 
   // 点击认证按钮
   attestInfo() {
-    if (this.state.isUserNameError || this.state.isStudentIDError || this.state.isTelError || !this.state.faculty) {
-      Taro.atMessage({
-        'message': '请输入正确信息',
-        'type': 'error',
+    setTimeout(() => {
+      if (this.state.isUserNameError || this.state.isStudentIDError || this.state.isTelError || !this.state.faculty || !this.state.userName || !this.state.studentID || !this.state.tel) {
+        Taro.atMessage({
+          'message': '请输入正确信息',
+          'type': 'error',
+        })
+        return
+      }
+      this.setState({
+        isAttestModalOpened: true
       })
-      return
-    }
-    this.setState({
-      isAttestModalOpened: true
-    })
+    }, 200)
   }
 
   // 点击模态框的确认按钮
   btnConfirmModalHandle() {
+    Taro.showLoading({
+      title: '加载中',
+      mask: true
+    })
     let userInfo = {
       userName: this.state.userName,
       faculty: this.state.faculty,
@@ -130,6 +136,7 @@ export default class Attest extends Component {
     }).then(res => {
       let updateCount = res.result.stats.updated
       if (updateCount > 0) {
+        Taro.hideLoading()
         Taro.atMessage({
           'message': '认证成功',
           'type': 'success',
@@ -142,6 +149,7 @@ export default class Attest extends Component {
         })
         return
       }
+      Taro.hideLoading()
       Taro.atMessage({
         'message': '数据未更新',
         'type': 'info',
