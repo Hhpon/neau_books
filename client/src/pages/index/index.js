@@ -1,6 +1,6 @@
 import Taro, { Component } from '@tarojs/taro'
 import { View, Button, Text, ScrollView } from '@tarojs/components'
-import { AtModal, AtModalAction, AtSearchBar, AtMessage } from "taro-ui"
+import { AtModal, AtModalAction, AtSearchBar, AtMessage, AtIcon } from "taro-ui"
 import { OPENID_STORAGE, LIMIT_COUNT, ERR_OK } from '@common/js/config'
 import BookCard from '@components/book-card/index'
 import SeModal from '@components/modal/index'
@@ -383,6 +383,13 @@ export default class Index extends Component {
         </ScrollView>
         <View className='book-list'>
           {BooksList}
+          {
+            isMore &&
+            <View className='loading'>
+              <View className='at-icon at-icon-loading-2'></View>
+              <View>Learn More</View>
+            </View>
+          }
           {(!isMore && booksInfo.length) &&
             <View className='over-down'>已经到底啦，亲╰(*´︶`*)╯</View>
           }
