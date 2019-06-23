@@ -6,7 +6,8 @@ import './test.scss'
 export default class Test extends Component {
 
   state = {
-    imgUrl: ''
+    imgUrl: '',
+    cookie: ''
   }
 
   componentWillMount() {
@@ -16,11 +17,12 @@ export default class Test extends Component {
   testConnction() {
     let that = this
     Taro.cloud.callFunction({
-      name: 'testConnction'
+      name: 'getLoginParams'
     }).then(res => {
-      let base64 = Taro.arrayBufferToBase64(res.result.data);
+      let base64 = Taro.arrayBufferToBase64(res.result.charCode.data);
       that.setState({
-        imgUrl: "data:image/PNG;base64," + base64
+        imgUrl: "data:image/PNG;base64," + base64,
+        cookie: res.result.cookie
       })
     })
   }
@@ -33,7 +35,17 @@ export default class Test extends Component {
 
   submit() {
     console.log(this.state.charCode);
-    
+    Taro.cloud.callFunction({
+      name: 'loginNeau',
+      data: {
+        charCode: this.state.charCode,
+        cookie: this.state.cookie,
+        studentID: 'A07170048',
+        studentPassWord: 'A07170048'
+      }
+    }).then(res => {
+      console.log(res);
+    })
   }
 
   render() {
