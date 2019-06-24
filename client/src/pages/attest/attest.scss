@@ -23,5 +23,18 @@ page {
       font-size: $fontsize-small;
       margin-left: 20px;
     }
+
+    .charcode-container {
+      position: relative;
+
+      .charcode-img {
+        height: 40px;
+        width: 160px;
+        position: absolute;
+        right: 0;
+        top: 50%;
+        margin-top: -20px;
+      }
+    }
   }
 }

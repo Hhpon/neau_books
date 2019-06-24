@@ -51,7 +51,6 @@ export default class Sell extends Component {
         _openid: openId
       }).get()
         .then((res) => {
-          console.log('async')
           if (!res.data[0].studentID) {
             that.setState({
               isModalOpened: true

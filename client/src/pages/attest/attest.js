@@ -3,6 +3,7 @@ import { View, Picker } from '@tarojs/components'
 import { AtButton, AtMessage } from 'taro-ui'
 import SeModal from '@components/modal/index'
 import SeInput from '@components/se-input/index'
+import { ERR_NO } from '@common/js/config'
 
 import './attest.scss'
 
@@ -15,40 +16,51 @@ export default class Attest extends Component {
   constructor() {
     super()
     this.state = {
-      userName: '',
-      faculty: '',
       studentID: '',
+      studentPassWord: '',
       tel: '',
+      charCode: '',
       attestModalContent: '认证信息提交以后不能更改，请确认是否提交',
       isAttestModalOpened: false,
-      facultyItems: ['农学', '经管', '工程', '动科', '动医', '电信', '食品', '生命', '园艺', '资环', '水利', '文法', '理学院', '国际', '艺术'],
-      isUserNameError: false,
       isStudentIDError: false,
-      isTelError: false
+      isStudentPassWordError: false,
+      isTelError: false,
+      charCodeUrl: '',
+      cookie: ''
     }
   }
 
-  userNameChange(e) {
-    let value = e.detail.value
-    this.setState({
-      userName: value
-    })
-    return value
+  componentWillMount() {
+    this.getLoginParams()
   }
 
-  facultyChange(e) {
-    let facultyItems = this.state.facultyItems
-    let index = e.detail.value
-    this.setState({
-      faculty: facultyItems[index]
+  // 获取爬虫cookie以及验证码
+  getLoginParams() {
+    let that = this
+    Taro.cloud.callFunction({
+      name: 'getLoginParams'
+    }).then(res => {
+      that.setState({
+        charCodeUrl: "data:image/PNG;base64," + res.result.charCode,
+        cookie: res.result.cookie
+      })
+    }).catch(err => {
+      console.log(err);
     })
-    return facultyItems[index]
   }
 
   studentIDChange(e) {
     let value = e.detail.value
     this.setState({
       studentID: value
+    })
+    return value
+  }
+
+  studentPassWord(e) {
+    let value = e.detail.value
+    this.setState({
+      studentPassWord: value
     })
     return value
   }
@@ -61,17 +73,12 @@ export default class Attest extends Component {
     return value
   }
 
-  userNameBlur(e) {
+  charCodeChange(e) {
     let value = e.detail.value
-    if (!value) {
-      this.setState({
-        isUserNameError: true
-      })
-      return
-    }
     this.setState({
-      isUserNameError: false
+      charCode: value
     })
+    return value
   }
 
   studentIDBlur(e) {
@@ -105,7 +112,7 @@ export default class Attest extends Component {
   // 点击认证按钮
   attestInfo() {
     setTimeout(() => {
-      if (this.state.isUserNameError || this.state.isStudentIDError || this.state.isTelError || !this.state.faculty || !this.state.userName || !this.state.studentID || !this.state.tel) {
+      if (this.state.isStudentIDError || this.state.isTelError || !this.state.studentID || !this.state.tel || !this.state.charCode) {
         Taro.atMessage({
           'message': '请输入正确信息',
           'type': 'error',
@@ -120,21 +127,33 @@ export default class Attest extends Component {
 
   // 点击模态框的确认按钮
   btnConfirmModalHandle() {
+    this.setState({
+      isAttestModalOpened: false
+    })
     Taro.showLoading({
       title: '加载中',
       mask: true
     })
-    let userInfo = {
-      userName: this.state.userName,
-      faculty: this.state.faculty,
-      studentID: this.state.studentID,
-      tel: this.state.tel
-    }
     Taro.cloud.callFunction({
-      name: 'updateUserinfo',
-      data: userInfo
+      name: 'loginNeau',
+      data: {
+        charCode: this.state.charCode,
+        cookie: this.state.cookie,
+        studentID: this.state.studentID,
+        studentPassWord: this.state.studentPassWord,
+        tel: this.state.tel
+      }
     }).then(res => {
-      let updateCount = res.result.stats.updated
+      let ret = res.result
+      if (ret.code === ERR_NO) {
+        Taro.atMessage({
+          'message': ret.loseRetMes,
+          'type': 'error',
+        })
+        Taro.hideLoading()
+        return
+      }
+      let updateCount = ret.stats.updated
       if (updateCount > 0) {
         Taro.hideLoading()
         Taro.atMessage({
@@ -143,7 +162,7 @@ export default class Attest extends Component {
         })
         setTimeout(() => {
           Taro.navigateBack({ delta: 1 })
-        }, 1000)
+        }, 500)
         this.setState({
           isAttestModalOpened: false
         })
@@ -153,17 +172,6 @@ export default class Attest extends Component {
       Taro.atMessage({
         'message': '数据未更新',
         'type': 'info',
-      })
-      this.setState({
-        isAttestModalOpened: false
-      })
-    }).catch(() => {
-      Taro.atMessage({
-        'message': '网络出现问题，请联系开发者',
-        'type': 'error',
-      })
-      this.setState({
-        isAttestModalOpened: false
       })
     })
   }
@@ -179,13 +187,14 @@ export default class Attest extends Component {
     return (
       <View className='attest'>
         <View className='attest-title'>学生认证</View>
-        <View className='attest-remark'>注：该信息是活动主办方唯一确认您身份的凭证，请认真填写！</View>
-        <SeInput isError={this.state.isUserNameError} onBlurInput={this.userNameBlur} title='姓名' value={this.state.userName} placeholder='请输入姓名' onChangeInput={this.userNameChange}></SeInput>
-        <Picker mode='selector' range={this.state.facultyItems} onChange={this.facultyChange}>
-          <SeInput disabled title='学院' placeholder='请选择学院' value={this.state.faculty}></SeInput>
-        </Picker>
-        <SeInput isError={this.state.isStudentIDError} onBlurInput={this.studentIDBlur} title='学号' value={this.state.studentID} placeholder='请输入学号' onChangeInput={this.studentIDChange}></SeInput>
-        <SeInput isError={this.state.isTelError} onBlurInput={this.telBlur} type='number' title='联系电话' value={this.state.tel} placeholder='请输入联系电话' onChangeInput={this.telChange} ></SeInput>
+        <View className='attest-remark'>注：学生认证为了保证买卖书籍同学均为东农学子，所以学号密码为教务系统的学号密码！</View>
+        <SeInput isError={this.state.isStudentIDError} onBlurInput={this.studentIDBlur} title='学号' value={this.state.studentID} placeholder='请输入学号' onChangeInput={this.studentIDChange} maxlength={9}></SeInput>
+        <SeInput isError={this.state.isStudentPassWordError} title='密码' value={this.state.studentPassWord} placeholder='请输入密码' onChangeInput={this.studentPassWord}></SeInput>
+        <SeInput isError={this.state.isTelError} onBlurInput={this.telBlur} type='number' title='联系电话' value={this.state.tel} placeholder='请输入联系电话' onChangeInput={this.telChange} maxlength={11}></SeInput>
+        <View className='charcode-container'>
+          <SeInput title='验证码' value={this.state.charCode} onChangeInput={this.charCodeChange} placeholder='请输入验证码' maxlength={4}></SeInput>
+          <Image src={this.state.charCodeUrl} className='charcode-img' />
+        </View>
         <View className='empty'></View>
         <AtButton onClick={this.attestInfo} type='primary'>提交</AtButton>
         <View className='modal'>

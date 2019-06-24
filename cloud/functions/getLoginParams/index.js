@@ -28,8 +28,12 @@ exports.main = async (event, context) => {
       random: Math.random()
     },
     responseType: 'arraybuffer',
+    transformResponse(data) {
+      return data.toString('base64');
+    },
     headers: {
       Cookie: cookie,
+      'Content-Type': 'image/jpeg',
       'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/75.0.3770.100 Safari/537.36'
     },
     proxy: {
@@ -38,7 +42,7 @@ exports.main = async (event, context) => {
     }
   }
 
-  let ret = await axios(getCharCodeOptions)
+  let ret = await axios.request(getCharCodeOptions)
 
   let loginParams = {
     charCode: ret.data,

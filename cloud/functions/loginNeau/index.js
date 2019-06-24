@@ -7,13 +7,14 @@ const cheerio = require('cheerio')
 const { HOST, PORT, _URL_ } = require('./config')
 
 cloud.init()
+const db = cloud.database()
 
 // 云函数入口函数
 exports.main = async (event, context) => {
-  const wxContext = cloud.getWXContext()
-  const { cookie, charCode, studentID, studentPassWord } = event
+  const OPENID = cloud.getWXContext().OPENID
+  const { cookie, charCode, studentID, studentPassWord, tel } = event
 
-  console.log(cookie, charCode);
+  console.log(cookie, charCode, studentID, studentPassWord);
 
   const loginOptions = {
     url: `${_URL_}loginAction.do`,
@@ -76,18 +77,26 @@ exports.main = async (event, context) => {
   let userInfoHtml = await axios.request(getUserinfoOption)
 
   const $ = cheerio.load(userInfoHtml.data)
-  const faculty = $('.fieldName').eq(26).next().text().trim()
   const userName = $('.fieldName').eq(1).next().text().trim()
+  const faculty = $('.fieldName').eq(26).next().text().trim()
 
   let userInfo = {
-    userName: userName,
     studentID: studentID,
     studentPassWord: studentPassWord,
+    tel: tel,
+    userName: userName,
     faculty: faculty
   }
 
-  return {
-    userInfo: userInfo,
-    code: 1
+  try {
+    return await db.collection('userInfo').where({
+      _openid: OPENID
+    })
+      .update({
+        data: userInfo
+      })
+  } catch (e) {
+    console.error(e)
+    return e
   }
 }

@@ -98,6 +98,7 @@ export default class Mine extends Component {
       db.collection('booksInfo').where({
         _openid: openId
       }).limit(LIMIT_COUNT).skip(LIMIT_COUNT * currentIndex).orderBy('putOutTime', 'desc').get().then(res => {
+        console.log(res.data);
         let newBooksInfo = booksInfo.concat(res.data)
         if (res.data.length < LIMIT_COUNT) {
           that.setState({
@@ -115,6 +116,7 @@ export default class Mine extends Component {
     })
   }
 
+  // 分页获取我预订的书籍
   _getDestineBooks() {
     let openId = Taro.getStorageSync(OPENID_STORAGE)
     let currentDestineIndex = this.state.currentDestineIndex
@@ -124,6 +126,7 @@ export default class Mine extends Component {
       db.collection('booksInfo').where({
         destineOpenId: openId
       }).limit(LIMIT_COUNT).skip(LIMIT_COUNT * currentDestineIndex).orderBy('destineTime', 'desc').get().then(res => {
+        console.log(res.data);
         let newBooksInfo = destineBooksInfo.concat(res.data)
         if (res.data.length < LIMIT_COUNT) {
           that.setState({
@@ -235,6 +238,17 @@ export default class Mine extends Component {
     })
   }
 
+  // 联系卖家或者买家
+  contactOther(telNum, bookStatus) {
+    console.log(telNum);
+    if (this.state.currentPage === 0 && bookStatus === 0) {
+      return
+    }
+    Taro.makePhoneCall({
+      phoneNumber: telNum
+    })
+  }
+
   render() {
     let booksInfo = this.state.booksInfo
     let destineBooksInfo = this.state.destineBooksInfo
@@ -254,7 +268,10 @@ export default class Mine extends Component {
               </View>
             </View>
             <View className='des-right'>
-              {
+              <View onClick={this.contactOther.bind(this, bookItem.tel)}>
+                联系卖家
+              </View>
+              {/* {
                 (bookItem.bookStatus === 1) &&
                 <View onClick={this.destineChange.bind(this, bookItem._id, index)}>
                   已预订
@@ -265,7 +282,7 @@ export default class Mine extends Component {
                 <View>
                   已完成
                 </View>
-              }
+              } */}
             </View>
           </View>
         </BookCard>
@@ -285,8 +302,8 @@ export default class Mine extends Component {
               </View>
             </View>
             <View className='des-right'>
-              <View>
-                {bookItem.bookStatus ? '已预订' : '未预订'}
+              <View onClick={this.contactOther.bind(this, bookItem.destineTel, bookItem.bookStatus)}>
+                {bookItem.bookStatus ? '联系买家' : '未预订'}
               </View>
             </View>
           </View>

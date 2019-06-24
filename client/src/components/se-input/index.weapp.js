@@ -8,9 +8,7 @@ export default class SeInput extends Component {
 
   constructor(props) {
     super(props)
-    this.state = {
-
-    }
+    this.state = {}
   }
 
   static defaultProps = {
@@ -20,7 +18,8 @@ export default class SeInput extends Component {
     placeholder: '',
     value: '',
     isError: false,
-    isClick: false
+    isClick: false,
+    maxlength: 30
   }
 
   changeInput(e) {
@@ -43,7 +42,7 @@ export default class SeInput extends Component {
     return (
       <View className='se-input' onClick={this.clickInput}>
         <Text className={isError ? 'is-error' : ''}>{this.props.title}</Text>
-        <Input onBlur={this.blurInput} disabled={this.props.disabled} type={this.props.type} placeholder={this.props.placeholder} value={this.props.value} onInput={this.changeInput}></Input>
+        <Input onBlur={this.blurInput} disabled={this.props.disabled} type={this.props.type} placeholder={this.props.placeholder} value={this.props.value} onInput={this.changeInput} maxlength={this.props.maxlength}></Input>
         {
           isError &&
           <View className='alert-icon'>
