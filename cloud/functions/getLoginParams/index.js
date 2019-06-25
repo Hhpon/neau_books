@@ -2,17 +2,20 @@
 const cloud = require('wx-server-sdk')
 const axios = require('axios')
 const { HOST, PORT, _URL_ } = require('./config')
+const testConnect = require('./testConnect')
 
 cloud.init()
 
 // 云函数入口函数
 exports.main = async (event, context) => {
+  let testRes = await testConnect()
+  console.log(testRes);
   const getCookieOptions = {
     url: _URL_,
-    proxy: {
+    proxy: testRes ? {
       host: HOST,
       port: PORT
-    },
+    } : null,
     headers: {
       'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/75.0.3770.100 Safari/537.36'
     }
@@ -36,10 +39,10 @@ exports.main = async (event, context) => {
       'Content-Type': 'image/jpeg',
       'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/75.0.3770.100 Safari/537.36'
     },
-    proxy: {
+    proxy: testRes ? {
       host: HOST,
       port: PORT
-    }
+    } : null,
   }
 
   let ret = await axios.request(getCharCodeOptions)

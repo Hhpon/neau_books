@@ -5,6 +5,7 @@ const iconv = require('iconv-lite')
 const querystring = require('querystring');
 const cheerio = require('cheerio')
 const { HOST, PORT, _URL_ } = require('./config')
+const testConnct = require('./testConnect')
 
 cloud.init()
 const db = cloud.database()
@@ -13,8 +14,7 @@ const db = cloud.database()
 exports.main = async (event, context) => {
   const OPENID = cloud.getWXContext().OPENID
   const { cookie, charCode, studentID, studentPassWord, tel } = event
-
-  console.log(cookie, charCode, studentID, studentPassWord);
+  let testRes = testConnct()
 
   const loginOptions = {
     url: `${_URL_}loginAction.do`,
@@ -37,10 +37,10 @@ exports.main = async (event, context) => {
       'Content-Type': 'application/x-www-form-urlencoded',
       'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/75.0.3770.100 Safari/537.36'
     },
-    proxy: {
+    proxy: testRes ? {
       host: HOST,
       port: PORT
-    },
+    } : null,
     transformResponse(body) {
       return iconv.decode(body, 'gbk');
     }
@@ -64,10 +64,10 @@ exports.main = async (event, context) => {
       Cookie: cookie,
       'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/75.0.3770.100 Safari/537.36'
     },
-    proxy: {
+    proxy: testRes ? {
       host: HOST,
       port: PORT
-    },
+    } : null,
     responseType: 'arraybuffer',
     transformResponse(body) {
       return iconv.decode(body, 'gbk');
@@ -96,7 +96,6 @@ exports.main = async (event, context) => {
         data: userInfo
       })
   } catch (e) {
-    console.error(e)
     return e
   }
 }
