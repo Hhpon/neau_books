@@ -25,6 +25,7 @@ export default class Attest extends Component {
       isStudentIDError: false,
       isStudentPassWordError: false,
       isTelError: false,
+      isCharCodeError: false,
       charCodeUrl: '',
       cookie: ''
     }
@@ -40,8 +41,19 @@ export default class Attest extends Component {
     Taro.cloud.callFunction({
       name: 'getLoginParams'
     }).then(res => {
+      console.log(res.result);
+      if (res.result.code === 0) {
+        Taro.atMessage({
+          'message': '网络出现问题，请稍后再试',
+          'type': 'error',
+        })
+        setTimeout(() => {
+          Taro.navigateBack({ delta: 1 })
+        }, 500)
+        return
+      }
       that.setState({
-        charCodeUrl: "data:image/PNG;base64," + res.result.charCode,
+        charCodeUrl: "data:image/jpeg;base64," + res.result.charCode,
         cookie: res.result.cookie
       })
     }).catch(err => {
@@ -109,10 +121,24 @@ export default class Attest extends Component {
     })
   }
 
+  charCodeBlur(e) {
+    let value = e.detail.value
+    let charCodeReg = /\b\w{4}\b/
+    if (!charCodeReg.test(value)) {
+      this.setState({
+        isCharCodeError: true
+      })
+      return
+    }
+    this.setState({
+      isCharCodeError: false
+    })
+  }
+
   // 点击认证按钮
   attestInfo() {
     setTimeout(() => {
-      if (this.state.isStudentIDError || this.state.isTelError || !this.state.studentID || !this.state.tel || !this.state.charCode) {
+      if (this.state.isStudentIDError || this.state.isTelError || this.state.isCharCodeError || !this.state.studentID || !this.state.tel || !this.state.charCode) {
         Taro.atMessage({
           'message': '请输入正确信息',
           'type': 'error',
@@ -146,6 +172,7 @@ export default class Attest extends Component {
     }).then(res => {
       let ret = res.result
       if (ret.code === ERR_NO) {
+        this.getLoginParams()
         Taro.atMessage({
           'message': ret.loseRetMes,
           'type': 'error',
@@ -192,7 +219,7 @@ export default class Attest extends Component {
         <SeInput isError={this.state.isStudentPassWordError} title='密码' value={this.state.studentPassWord} placeholder='请输入密码' onChangeInput={this.studentPassWord}></SeInput>
         <SeInput isError={this.state.isTelError} onBlurInput={this.telBlur} type='number' title='联系电话' value={this.state.tel} placeholder='请输入联系电话' onChangeInput={this.telChange} maxlength={11}></SeInput>
         <View className='charcode-container'>
-          <SeInput title='验证码' value={this.state.charCode} onChangeInput={this.charCodeChange} placeholder='请输入验证码' maxlength={4}></SeInput>
+          <SeInput isError={this.state.isCharCodeError} title='验证码' value={this.state.charCode} onBlurInput={this.charCodeBlur} onChangeInput={this.charCodeChange} placeholder='请输入验证码' maxlength={4}></SeInput>
           <Image src={this.state.charCodeUrl} className='charcode-img' />
         </View>
         <View className='empty'></View>
