@@ -17,7 +17,6 @@ export default class Search extends Component {
   constructor() {
     super()
     this.state = {
-      searchHistory: [],
       searchInfo: [],
       isMore: true,
       isLoading: true,
@@ -77,34 +76,6 @@ export default class Search extends Component {
           reject(0)
         })
     })
-  }
-
-  // 设置搜索历史
-  _setSearchHistory(value) {
-    let searchHistory = Taro.getStorageSync(HISTORY_STORAGE) || []
-    let index = searchHistory.indexOf(value)
-    if (index !== -1) {
-      return
-    }
-    let historyLength = searchHistory.push(value)
-    if (historyLength > 20) {
-      searchHistory.shift()
-    }
-    Taro.setStorage({ key: HISTORY_STORAGE, data: searchHistory })
-  }
-
-  // 获取搜索历史
-  _getSearchHistory() {
-    let searchHistory = Taro.getStorageSync(HISTORY_STORAGE)
-    this.setState({
-      searchHistory: searchHistory.reverse()
-    })
-  }
-
-  // 删除搜索历史item
-  _delSearchHistory(index) {
-    let searchHistory = Taro.getStorageSync(HISTORY_STORAGE)
-    searchHistory.splice(index, 1)
   }
 
   // 模糊获取搜索信息
@@ -282,7 +253,6 @@ export default class Search extends Component {
     let isMore = this.state.isMore
     let isLoading = this.state.isLoading
     let searchValue = this.state.searchValue
-    let searchHistory = this.state.searchHistory
     const BooksList = booksInfo.map((bookItem, index) => {
       return (
         <BookCard onClose={this.closeBtnClick.bind(this, index)} isCloseOpened={this.state.isCloseOpened} key={bookItem._id} taroKey={index} bookInfo={bookItem}>
@@ -308,11 +278,6 @@ export default class Search extends Component {
     return (
       <View className='search'>
         <View className='search-container'>
-          {/* <AtSearchBar
-            value={this.state.searchValue}
-            onChange={this.onSearchValueChange.bind(this)}
-            onActionClick={this.onSearchValueHandle}
-          /> */}
           <View className='search-icon'>
             <AtIcon value='search' size='18'></AtIcon>
           </View>
@@ -323,32 +288,6 @@ export default class Search extends Component {
             </View>
           }
         </View>
-        {/* {(!searchValue && searchHistory.length) &&
-          <View className='search-history'>
-            <View className='history-title'>
-              <Text>搜索历史</Text>
-              <AtIcon value='trash' size='14' color='#757575'></AtIcon>
-            </View>
-            <View className='history-content'>
-              {
-                searchHistory.map((historyValue, index) => {
-                  return (
-                    <View key={index} className='history-item' onClick={this.historyItem.bind(this, historyValue)}>
-                      <Text>{historyValue}</Text>
-                      <AtIcon value='close' size='14' color='#757575' onClick={this.historyItemClose.bind(this, index)}></AtIcon>
-                    </View>
-                  )
-                })
-              }
-            </View>
-          </View>
-        } */}
-        {/* {
-          !searchValue &&
-          <View className='nothing-wrapper'>
-            <Text>请输入书籍名称</Text>
-          </View>
-        } */}
         {
           searchValue &&
           <View className='book-list'>
