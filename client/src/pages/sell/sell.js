@@ -136,6 +136,9 @@ export default class Sell extends Component {
         name: 'getIsbnInfo',
         data: {
           isbn: res.result
+        },
+        config: {
+          env: 'test-zrdkv'
         }
       }).then(result => {
         result = result.result

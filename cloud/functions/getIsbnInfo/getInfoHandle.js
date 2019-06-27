@@ -4,13 +4,9 @@
 const CryptoJS = require("crypto-js");
 const request = require('request');
 const querystring = require('querystring');
+const fs = require('fs')
 
-// 云市场分配的密钥Id
-const secretId = "AKID4tYHFW9lF4C5QqoVled2BE4c8tbL042G9K2K";
-// 云市场分配的密钥Key
-const secretKey = "JV7mgv0T7H8A7076wsxm1jrJrt1yk351B3HMHbkm";
-const source = "market";
-
+const { secretId, secretKey, source } = JSON.parse(fs.readFileSync('./config.json'))
 
 function handle(isbn) {
   // 签名

@@ -49,7 +49,13 @@ exports.main = async (event, context) => {
 
   let loginParams = {
     charCode: ret.data,
-    cookie: cookie
+    cookie: cookie,
+    testRes: testRes
+  }
+  if (testRes === 1) {
+    loginParams.test = 1
+  } else {
+    loginParams.test = 0
   }
   return loginParams
 }
