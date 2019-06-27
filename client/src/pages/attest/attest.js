@@ -39,10 +39,7 @@ export default class Attest extends Component {
   getLoginParams() {
     let that = this
     Taro.cloud.callFunction({
-      name: 'getLoginParams',
-      config: {
-        env: 'test-zrdkv'
-      }
+      name: 'getLoginParams'
     }).then(res => {
       console.log(res.result);
       if (res.result.code === 0) {

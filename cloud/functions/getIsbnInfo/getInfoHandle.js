@@ -4,9 +4,8 @@
 const CryptoJS = require("crypto-js");
 const request = require('request');
 const querystring = require('querystring');
-const fs = require('fs')
+const { secretId, secretKey, source } = require('./config')
 
-const { secretId, secretKey, source } = JSON.parse(fs.readFileSync('./config.json'))
 
 function handle(isbn) {
   // 签名
