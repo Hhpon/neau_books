@@ -11,6 +11,6 @@
   "dependencies": {
     "axios": "^0.19.0",
     "wx-server-sdk": "latest",
-    "nodemailer": "^6.2.1"
+    "nodemailer": "^6.4.16"
   }
 }
