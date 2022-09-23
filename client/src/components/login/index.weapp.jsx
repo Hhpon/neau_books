@@ -1,12 +1,11 @@
-import Taro, { Component } from "@tarojs/taro"
-import { View, Text, Button } from "@tarojs/components"
+import Taro from "@tarojs/taro";
+import { View, Text, Button } from "@tarojs/components";
+import React, { Component } from "react";
 
 export default class Login extends Component {
-  constructor(props){
-    super(props)
-    this.state={
-
-    }
+  constructor(props) {
+    super(props);
+    this.state = {};
   }
 
   componentWillMount() {}
@@ -28,16 +27,16 @@ export default class Login extends Component {
       .then(res => {
         this.setState({
           context: res.result
-        })
-      })
-  }
+        });
+      });
+  };
 
   render() {
     return (
-      <View className='index'>
+      <View className="index">
         <Button onClick={this.getLogin}>获取登录云函数</Button>
         <Text>context：{JSON.stringify(this.state.context)}</Text>
       </View>
-    )
+    );
   }
 }
